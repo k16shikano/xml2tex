@@ -1,0 +1,195 @@
+
+<?xml-stylesheet type="text/css" href="sample.css"?>
+<book>
+<chapter>
+<title lang="ja">XMLタグからLaTeXへの変換をお気軽に</title>
+
+<p lang="en">
+There's so many XML-like documents.
+</p>
+
+<p lang="cn">
+世間有很多XML風的文件
+</p>
+
+<p lang="ja">
+世の中にはXMLっぽいドキュメントがたくさんあります。
+<footnote>
+ここで、わざわざXML「っぽい」と言ったのは、XMLに対して「人間が読み書きするものではない」という意見が根強いからです。
+厳密なXMLについては、確かにそのとおりだと思います。
+でも、開始タグと終了タグの「入れ子」というアイデアそのものは、まっとうなドキュメントの構造を表現するには妥当な仕掛けではないでしょうか。
+実際、みんなHTMLくらいであれば苦もなく手書きできますよね。
+それをブラウザでレンダリングして、表示が意図したものでなかったら、
+タグの綴じ忘れの可能性もありますが、そもそも自分で書き下した文書の構造に欠陥がある場合も少なくないでしょう。
+</footnote>
+</p>
+
+<p lang="ja">
+HTMLやDocbookのような素性のはっきりしているXMLであれば、どこかに体の良いLaTeXへのコンバーターを作っている人がいるかもしれません。
+でもXMLっぽいタグで構造を与えられているだけのテキストファイルには、そんな出来合いのコンバーターは望めません。自分で作るしかないのです。
+</p>
+
+<p lang="ja">
+そんな野良XMLからLaTeXへのコンバーターを何回か作ってみると誰でも気づきますが、やることは毎回だいたい同じです。
+つまり、（1）ある構造を見つけたら、（2）適切なLaTeXの環境やコマンドを適用し、（3）その構造の中身を再帰的に処理、
+（4）その構造より後ろをやはり再帰的に処理、（5）3と4を連接です。
+</p>
+
+<image src="fig1.png"/>
+
+<p lang="ja">
+しかも、このうちで「XMLっぽいもの」の種類に応じて変化するのは、2の部分だけです。
+ようするに「どのタグをどうLaTeXのコマンドに置き換えるか」というルールだけが毎回異なるわけです。
+そこで、適当なルールを与えてやるとコンバーターを生成してくれうような仕組みを作ることにしました。
+</p>
+
+<sect1>
+<title lang="ja">ルールの書き方</title>
+
+<p lang="ja">
+ルールとして与えるのは、最初にやること、間にやること、最後にやること、の三つです。
+それぞれ出力したい文字列か、もしくはString -> Stringなプロシージャを指定します。
+文字列を指定するのは、出力したい文字列が固定的なものである場合です。
+タグの本体の文字列に対してなんらかの処理をした結果を出力したいときは、プロシージャを指定します。
+</p>
+
+<p>
+たとえば段落タグ用の処理ルールであればこんな感じになります。
+</p>
+
+<code>
+(define-rule
+  ""
+  trim
+  "\n\n")
+</code>
+
+<p lang="ja">
+先頭には何も出力せず（<tt>""</tt>）、本体の文字列については基本的なエスケープ処理などを行い（<tt>trim</tt>プロシージャ）、
+最後にはLaTeXの段落を作るために改行を二つ出力しています（<tt>\n\n</tt>）。
+</p>
+
+<p>
+このルールをpタグに関連づけるには、次のようにします。
+</p>
+
+<code>
+(define-tag p
+  (define-rule
+    ""
+    trim
+    "\n\n"))
+</code>
+
+<p lang="ja">
+デフォルトでは、これをrules.scmに登録することで、pタグに対する変換ルールとして利用されます。
+</p>
+
+</sect1>
+
+<sect1>
+<title lang="ja">
+包括的なルールの適用
+</title>
+
+<p lang="ja">
+前節で登場した<tt>define-tag</tt>と<tt>define-rule</tt>を使えば、自分の手元にある野良XMLを見ながらルールをどんどん追加していくだけで、
+LaTeXファイルへの変換が簡単に扱えるようになります。
+ところが、実際にルールをどんどん追加していく作業をしてみると、似たようなルールがたくさん繰り替えされることに気がつくでしょう。
+名前だけ違う同じようなルールをいちいち追加していくのも面倒な話です。
+</p>
+
+<p lang="ja">
+そこで、似たようなLaTeXの出力になってほしい複数のタグに対して一気にルールを適用する仕組みも用意しました。
+<footnote>ルール定義<tt>define-rule</tt>とタグへのマッピング<tt>define-tag</tt>が別々のレイヤに分かれているのは、これがしたいからです。</footnote>
+</p>
+
+<p lang="ja">
+たとえば、タイプライタフォントを意味する&lt;tt>タグを\ttコマンドにするのも、イタリックフォントを意味する&lt;it>タグを\itコマンドにするのも、
+「これこれという名前のLaTeXコマンドになるべし」という共通のルール<tt>(make-latex-cmd name)</tt>としてくくってしまうことができます。
+</p>
+
+<code>
+(define (make-latex-cmd name)
+  (define-rule
+    (lambda ()
+      (list "\\" name "{"))
+    trim
+    (lambda () (list "}"))))
+
+(define-tag tt (make-latex-cmd "tt"))
+
+(define-tag it (make-latex-cmd "it"))
+</code>
+
+<p lang="ja">
+<tt>make-latex-cmd</tt>が一種の「ルール生成器」であり、ttもitも同じ生成器からルールを作ってしまうという発想です。
+さらに一歩進んで、「この名前のタグには同じ生成器を単純に適用しろ」という仕組み<tt>define-simple-rules</tt>も用意しています。
+</p>
+
+<code>
+(define-simple-rules make-latax-cmd
+  tt it)
+</code>
+
+<p lang="ja">
+後になって&lt;footnote>の変換も同じルール生成器<tt>make-latax-cmd</tt>を適用すればいいだけだと気がついたら、単純に付け足すだけです。
+</p>
+
+<code>
+(define-simple-rules make-latax-cmd
+  tt it footnote)
+</code>
+
+</sect1>
+
+<sect1>
+<title lang="ja">
+親子とか属性とか
+</title>
+
+<p lang="ja">
+野良XMLのいいところは、構造がついていることです。
+しかしその利点は、あまり構造的とはいえないLaTeXへの変換では厄介な面もあります。
+たとえば、この文書では&lt;chapter&gt;と&lt;sect1&gt;の中に&lt;title&gt;という同じタグがあるのですが、
+これをLaTeXでそれぞれ\chapterと\sectionに変換するには、&lt;title>用のルールから上位の構造である&lt;chapter>や&lt;sect1>が見える必要があります。
+</p>
+
+<p lang="ja">
+全体の木構造を参照すればいいだけなので難しいことはないのですが、そのたびに木を見にいくコードを書くのは面倒です。
+ルールを書くときに<tt>$parent</tt>とか<tt>$child</tt>といった変数で参照できるようになっていれば便利ですよね。
+&lt;title>ならこんなふうにルールを定義できます。
+</p>
+
+<code>
+(define-tag title
+  (define-rule
+    (lambda ()
+      (list
+       (cond (($parent? 'chapter)  "\\chapter{")
+	     (($parent? 'sect1)    "\\section{")
+	     (else (error "title" $parent)))))
+    trim
+    "}"))
+</code>
+
+<p lang="ja">
+もうひとつ野良XMLで面倒なのは、属性です。
+これも木を見ればいいだけではあるけれど、簡単にするために、<tt>($@ lang)</tt>などとして属性（この場合はlang）の値を取り出せるようにしてあります。
+たとえば&lt;image src="fig1.png">に対応するルールはこんなふうに書けます。
+</p>
+
+<code>
+(define-tag image
+  (define-rule
+    (list "\\includegraphics"
+          #`"{,(ifstr ($@ 'src))}"
+    trim
+    ""))
+</code>
+
+</sect1>
+
+</chapter>
+
+</book>

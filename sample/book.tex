@@ -1,0 +1,144 @@
+\documentclass{jsbook}
+\usepackage{graphicx}\usepackage{alltt}\begin{document}
+\chapter{XMLタグからLaTeXへの変換をお気軽に}{\small
+There's so many XML-like documents.
+}
+
+
+世の中にはXMLっぽいドキュメントがたくさんあります。
+\footnote{
+ここで、わざわざXML「っぽい」と言ったのは、XMLに対して「人間が読み書きするものではない」という意見が根強いからです。
+厳密なXMLについては、確かにそのとおりだと思います。
+でも、開始タグと終了タグの「入れ子」というアイデアそのものは、まっとうなドキュメントの構造を表現するには妥当な仕掛けではないでしょうか。
+実際、みんなHTMLくらいであれば苦もなく手書きできますよね。
+それをブラウザでレンダリングして、表示が意図したものでなかったら、
+タグの綴じ忘れの可能性もありますが、そもそも自分で書き下した文書の構造に欠陥がある場合も少なくないでしょう。
+}
+
+
+HTMLやDocbookのような素性のはっきりしているXMLであれば、どこかに体の良いLaTeXへのコンバーターを作っている人がいるかもしれません。
+でもXMLっぽいタグで構造を与えられているだけのテキストファイルには、そんな出来合いのコンバーターは望めません。自分で作るしかないのです。
+
+
+
+そんな野良XMLからLaTeXへのコンバーターを何回か作ってみると誰でも気づきますが、やることは毎回だいたい同じです。
+つまり、（1）ある構造を見つけたら、（2）適切なLaTeXの環境やコマンドを適用し、（3）その構造の中身を再帰的に処理、
+（4）その構造より後ろをやはり再帰的に処理、（5）3と4を連接です。
+
+
+\begin{figure}
+\includegraphics[width=100truemm]{fig1.png}\end{figure}
+しかも、このうちで「XMLっぽいもの」の種類に応じて変化するのは、2の部分だけです。
+ようするに「どのタグをどうLaTeXのコマンドに置き換えるか」というルールだけが毎回異なるわけです。
+そこで、適当なルールを与えてやるとコンバーターを生成してくれうような仕組みを作ることにしました。
+
+
+\section{ルールの書き方}
+ルールとして与えるのは、最初にやること、間にやること、最後にやること、の三つです。
+それぞれ出力したい文字列か、もしくはString -{\symbol{62}} Stringなプロシージャを指定します。
+文字列を指定するのは、出力したい文字列が固定的なものである場合です。
+タグの本体の文字列に対してなんらかの処理をした結果を出力したいときは、プロシージャを指定します。
+
+
+\begin{alltt}
+(define-rule
+  ""
+  trim
+  "{\symbol{92}}n{\symbol{92}}n")
+\end{alltt}
+先頭には何も出力せず（\texttt{""}）、本体の文字列については基本的なエスケープ処理などを行い（\texttt{trim}プロシージャ）、
+最後にはLaTeXの段落を作るために改行を二つ出力しています（\texttt{{\symbol{92}}n{\symbol{92}}n}）。
+
+
+\begin{alltt}
+(define-tag p
+  (define-rule
+    ""
+    trim
+    "{\symbol{92}}n{\symbol{92}}n"))
+\end{alltt}
+デフォルトでは、これをrules.scmに登録することで、pタグに対する変換ルールとして利用されます。
+
+
+\section{
+包括的なルールの適用
+}
+前節で登場した\texttt{define-tag}と\texttt{define-rule}を使えば、自分の手元にある野良XMLを見ながらルールをどんどん追加していくだけで、
+LaTeXファイルへの変換が簡単に扱えるようになります。
+ところが、実際にルールをどんどん追加していく作業をしてみると、似たようなルールがたくさん繰り替えされることに気がつくでしょう。
+名前だけ違う同じようなルールをいちいち追加していくのも面倒な話です。
+
+
+
+そこで、似たようなLaTeXの出力になってほしい複数のタグに対して一気にルールを適用する仕組みも用意しました。
+\footnote{ルール定義\texttt{define-rule}とタグへのマッピング\texttt{define-tag}が別々のレイヤに分かれているのは、これがしたいからです。}
+
+
+たとえば、タイプライタフォントを意味する{\symbol{60}}tt{\symbol{62}}タグを{\symbol{92}}ttコマンドにするのも、イタリックフォントを意味する{\symbol{60}}it{\symbol{62}}タグを{\symbol{92}}itコマンドにするのも、
+「これこれという名前のLaTeXコマンドになるべし」という共通のルール\texttt{(make-latex-cmd name)}としてくくってしまうことができます。
+
+
+\begin{alltt}
+(define (make-latex-cmd name)
+  (define-rule
+    (lambda ()
+      (list "{\symbol{92}}{\symbol{92}}" name "{\symbol{123}}"))
+    trim
+    (lambda () (list "{\symbol{125}}"))))
+
+(define-tag tt (make-latex-cmd "tt"))
+
+(define-tag it (make-latex-cmd "it"))
+\end{alltt}\texttt{make-latex-cmd}が一種の「ルール生成器」であり、ttもitも同じ生成器からルールを作ってしまうという発想です。
+さらに一歩進んで、「この名前のタグには同じ生成器を単純に適用しろ」という仕組み\texttt{define-simple-rules}も用意しています。
+
+
+\begin{alltt}
+(define-simple-rules make-latax-cmd
+  tt it)
+\end{alltt}
+後になって{\symbol{60}}footnote{\symbol{62}}の変換も同じルール生成器\texttt{make-latax-cmd}を適用すればいいだけだと気がついたら、単純に付け足すだけです。
+
+
+\begin{alltt}
+(define-simple-rules make-latax-cmd
+  tt it footnote)
+\end{alltt}\section{
+親子とか属性とか
+}
+野良XMLのいいところは、構造がついていることです。
+しかしその利点は、あまり構造的とはいえないLaTeXへの変換では厄介な面もあります。
+たとえば、この文書では{\symbol{60}}chapter{\symbol{62}}と{\symbol{60}}sect1{\symbol{62}}の中に{\symbol{60}}title{\symbol{62}}という同じタグがあるのですが、
+これをLaTeXでそれぞれ{\symbol{92}}chapterと{\symbol{92}}sectionに変換するには、{\symbol{60}}title{\symbol{62}}用のルールから上位の構造である{\symbol{60}}chapter{\symbol{62}}や{\symbol{60}}sect1{\symbol{62}}が見える必要があります。
+
+
+
+全体の木構造を参照すればいいだけなので難しいことはないのですが、そのたびに木を見にいくコードを書くのは面倒です。
+ルールを書くときに\texttt{{\symbol{36}}parent}とか\texttt{{\symbol{36}}child}といった変数で参照できるようになっていれば便利ですよね。
+{\symbol{60}}title{\symbol{62}}ならこんなふうにルールを定義できます。
+
+
+\begin{alltt}
+(define-tag title
+  (define-rule
+    (lambda ()
+      (list
+       (cond (({\symbol{36}}parent? 'chapter)  "{\symbol{92}}{\symbol{92}}chapter{\symbol{123}}")
+	     (({\symbol{36}}parent? 'sect1)    "{\symbol{92}}{\symbol{92}}section{\symbol{123}}")
+	     (else (error "title" {\symbol{36}}parent)))))
+    trim
+    "{\symbol{125}}"))
+\end{alltt}
+もうひとつ野良XMLで面倒なのは、属性です。
+これも木を見ればいいだけではあるけれど、簡単にするために、\texttt{({\symbol{36}}@ lang)}などとして属性（この場合はlang）の値を取り出せるようにしてあります。
+たとえば{\symbol{60}}image src="fig1.png"{\symbol{62}}に対応するルールはこんなふうに書けます。
+
+
+\begin{alltt}
+(define-tag image
+  (define-rule
+    (list "{\symbol{92}}{\symbol{92}}includegraphics"
+          {\symbol{35}}`"{\symbol{123}},(ifstr ({\symbol{36}}@ 'src)){\symbol{125}}"
+    trim
+    ""))
+\end{alltt}\end{document}
