@@ -1,7 +1,7 @@
-ŠÈ’P‚Èƒ‹[ƒ‹‚ð—^‚¦‚é‚±‚Æ‚ÅA–ì—ÇXML‚©‚çLaTeX‚Ö‚ÌƒRƒ“ƒo[ƒ^[‚ð¶¬‚·‚éŽdŠ|‚¯B
-Ú‚µ‚­‚Í sample/sample.xml ‚ðŽQÆB
+ç°¡å˜ãªãƒ«ãƒ¼ãƒ«ã‚’ä¸Žãˆã‚‹ã“ã¨ã§ã€é‡Žè‰¯XMLã‹ã‚‰LaTeXã¸ã®ã‚³ãƒ³ãƒãƒ¼ã‚¿ãƒ¼ã‚’ç”Ÿæˆã™ã‚‹ä»•æŽ›ã‘ã€‚
+è©³ã—ãã¯ sample/sample.xml ã‚’å‚ç…§ã€‚
 
-sample/sample.xml ‚»‚Ì‚à‚Ì‚ª‚¨ŽŽ‚µ‚ÉŽg‚¦‚Ü‚·B
+sample/sample.xml ãã®ã‚‚ã®ãŒãŠè©¦ã—ã«ä½¿ãˆã¾ã™ã€‚
 
 > gosh -I. xml2tex.scm -r sample/rules.scm sample/sample.xml > sample/book.tex
 
