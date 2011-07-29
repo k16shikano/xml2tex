@@ -64,7 +64,7 @@
 	(lambda (str)
 	  (without-white (kick-comment str)))
 	(lambda () 
-	  (list "\n\\end" name))))))
+	  (list "\\end" name))))))
 
 (define (make-latex-cmd name . args)
   (receive (opt args) (latex-opt-args args)

@@ -8,7 +8,7 @@
 
 (define xml-entities
   (list
-   '(amp  . "&") 
+   '(amp  . "&")
    '(ouml . "\\\"o")
    '(lt   . "<")
    '(gt   . ">")

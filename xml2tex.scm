@@ -38,9 +38,7 @@
               (lambda (port)
                 (with-module sxml.ssax
                   (fluid-let ((ssax:predefined-parsed-entities
-			       xml-entities
-			       #;`((,(string->symbol "amp") . "&") (,(string->symbol "ouml") . "\\\"o")
-				 (,(string->symbol "lt") . "<"))))
+			       xml-entities))
                     (ssax:xml->sxml port '()))))))))))
 
 (define (main args)
