@@ -26,19 +26,16 @@
   (use sxml.tools)
   (use xmltex.cnvr)
   (export make-latex-env
-	  make-latex-cmd
-	  make-latex-cmd-without-tex-escape
-	  make-latex-group
-	  ignore
-	  through
-	  define-simple-rules
-	  define-tag-replace
-	  ifstr
-	  when-lang
-	  without-white
-	  kick-comment
-	  dis-ligature
-	  trim)
+          make-latex-cmd
+          make-latex-cmd-without-tex-escape
+          make-latex-group
+          ignore
+          through
+          without-white
+          kick-comment
+          dis-ligature
+          trim
+          index-trim)
   )
 
 (select-module xmltex.latex)
@@ -49,37 +46,37 @@
 
 (define (latex-opt-args args)
   (let ((opt (get-keyword :opt args ""))
-	(args (get-keyword :args args '())))
+        (args (get-keyword :args args '())))
     (values (if (string=? opt "") '()
-		(format #f "[~a]" opt))
-	    (if (null? args) '()
-		(map (pa$ format #f "{~a}") args)))))
+                (format #f "[~a]" opt))
+            (if (null? args) '()
+                (map (pa$ format #f "{~a}") args)))))
 
 (define (make-latex-env name . args)
   (let ((name (format #f "{~a}" name)))
     (receive (opt args) (latex-opt-args args)
       (define-rule
         (lambda ()
-	  (list "\n\\begin" name opt args))
-	(lambda (str)
-	  (without-white (kick-comment str)))
-	(lambda () 
-	  (list "\\end" name))))))
+          (list "\n\\begin" name opt args))
+        (lambda (str)
+          (without-white (kick-comment str)))
+        (lambda () 
+          (list "\\end" name))))))
 
 (define (make-latex-cmd name . args)
   (receive (opt args) (latex-opt-args args)
     (define-rule
       (lambda ()
-	(list "\\" name opt args "{"))
+        (list "\\" name opt args "{"))
       (lambda (str)
-	(list (without-white (kick-comment str))))
+        (list (without-white (kick-comment str))))
       (lambda () (list "}")))))
 
 (define (make-latex-cmd-without-tex-escape name . args)
   (receive (opt args) (latex-opt-args args)
     (define-rule
       (lambda ()
-	(list "\\" name opt args "{"))
+        (list "\\" name opt args "{"))
       (lambda (str) str)
       (lambda () (list "}")))))
 
@@ -99,24 +96,27 @@
     (lambda (s) s)
     (lambda () '())))
 
+(define (has-siblings? name siblings)
+  (any (lambda (e) (eq? name (sxml:name e))) siblings))
+
 (define-macro (define-simple-rules builder . tags)
   (let R ((tags tags)
-	  (rest '()))
+          (rest '()))
     (if (null? tags) `(begin ,@(reverse rest))
-	(R (cdr tags)
-	   (list* `(define-tag ,(car tags)
-		     (,builder ',(car tags)))
-		  rest)))))
+        (R (cdr tags)
+           (list* `(define-tag ,(car tags)
+                     (,builder ',(car tags)))
+                  rest)))))
 
 (define-macro (define-tag-replace tagname proc-or-str)
   `(define-tag ,tagname
      (define-rule
        (lambda ()
-	 (if (string? ,proc-or-str) '(,proc-or-str)
-	     '("")))
+         (if (string? ,proc-or-str) '(,proc-or-str)
+             '("")))
        (lambda (str)
-	 (if (procedure? ,proc-or-str) (,proc-or-str str)
-	     str))
+         (if (procedure? ,proc-or-str) (,proc-or-str str)
+             str))
        "")))
 
 (define-syntax ifstr
@@ -130,7 +130,14 @@
      ((_ con)
       (if con con ""))
      ((_ con else str)
-      (if con con str))))
+      (if con con str))
+     ((_ con proc-or-str1 else str)
+      (if (and con (string? con))
+          (if (procedure? proc-or-str1)
+              (proc-or-str1 con)
+              proc-or-str1)
+          str))))
+
 
 (define-syntax when-lang
   (syntax-rules (else)
@@ -139,17 +146,17 @@
     ((_ language builder)
      (call/cc (lambda (k)
        (lambda (body root)
-	 (let1 attr-lang (sxml:attr-u body 'lang)
-	   (if (and attr-lang (string=? attr-lang language))
-	       (k builder)
-	       ""))))))
+         (let1 attr-lang (sxml:attr-u body 'lang)
+           (if (and attr-lang (string=? attr-lang language))
+               (k builder)
+               ""))))))
     ((_ language1 builder1 language2 builder2 ...)
      (call/cc (lambda (k)
        (lambda (body root)
-	 (let1 attr-lang (sxml:attr-u body 'lang)
-	   (if (and attr-lang (string=? attr-lang language1))
-	       (k builder1)
-	       (k (when-lang language2 builder2 ...))))))))))
+         (let1 attr-lang (sxml:attr-u body 'lang)
+           (if (and attr-lang (string=? attr-lang language1))
+               (k builder1)
+               (k (when-lang language2 builder2 ...))))))))))
 
      
 ;;--------------
@@ -191,5 +198,9 @@
 
 (define trim
   (compose without-white kick-comment))
+
+(define (index-trim str)
+  (regexp-replace-all* str
+      #/[\"!@|]/ "\"\\0"))
 
 (provide "xmltex/latex")

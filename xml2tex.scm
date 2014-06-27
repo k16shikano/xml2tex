@@ -31,14 +31,15 @@
   (call-with-input-file filename
     (lambda (port)
       (let ((local-xml (port->string port))
-	    (xml-entities xml-entities))
-	(if (equal? "" local-xml)
-	    '()
-	    (call-with-input-string local-xml
+            (xml-entities xml-entities))
+        (if (equal? "" local-xml)
+            '()
+            (call-with-input-string local-xml
               (lambda (port)
                 (with-module sxml.ssax
                   (fluid-let ((ssax:predefined-parsed-entities
-			       xml-entities))
+                               xml-entities)
+                              (ssax:reverse-collect-str-drop-ws ssax:reverse-collect-str))
                     (ssax:xml->sxml port '()))))))))))
 
 (define (main args)
@@ -47,11 +48,11 @@
      (help     "h|help" => (cut show-help (car args)))
      . restargs)
     (if (null? restargs)
-	(show-help (car args))
-	(begin 
-	  (load rulefile)
-	  (let ((sxml (to-sxml (last restargs))))
-	    (write-tree (cnvr sxml sxml))))))
+        (show-help (car args))
+        (begin 
+          (load rulefile)
+          (let ((sxml (to-sxml (last restargs))))
+            (write-tree (cnvr sxml sxml))))))
   0)
 
 (define (show-help p)

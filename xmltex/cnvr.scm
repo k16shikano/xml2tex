@@ -25,9 +25,19 @@
   (use sxml.tools)
   (export cnvr
           define-tag
-          define-rule)
+          define-rule
+          define-simple-rules
+          define-tag-replace
+          ifstr
+          when-lang
+          has-siblings?)
   )
 (select-module xmltex.cnvr)
+
+(define (cnvr sxml root)
+  (let ((tag (car sxml))
+        (body sxml))
+    (tag body root)))
 
 (define-macro (define-tag tagname rule)
   ;; tagname: symbol
@@ -53,16 +63,22 @@
                   ($childs (lambda ()
                             ((sxml:child (ntype?? '*any*)) body)))
                   ($child (lambda (name)
-                            (let1 childs (filter (lambda (kid)
-                                                 (eq? (sxml:node-name kid) name))
-                                                 ($childs))
-                                  (if (null? childs) #f (car childs)))))
+                            (filter (lambda (kid)
+                                      (eq? (sxml:node-name kid) name))
+                                    ($childs))))
+                  ($following-siblings (lambda ()
+                               (((sxml:following-sibling (ntype?? '*any*)) root) body)))
+                  ($siblings (lambda ()
+                               ((node-or ((sxml:following-sibling (ntype?? '*any*)) root)
+                                         ((sxml:preceding-sibling (ntype?? '*any*)) root)) body)))
                   (|$@| (lambda (name)
                           (cond ((sxml:attr-u body name)
                                  => values)
                                 (else #f))))
                   ($under? (lambda (list)
-                             (not (null? (((sxml:ancestor (ntype-names?? list)) root) body))))))
+                             (not (null? (((sxml:ancestor (ntype-names?? list)) root) body)))))
+                  ($ancestor-of? (lambda (list)
+                             (not (null? ((node-closure (ntype-names?? list)) body))))))
              (append (cond ((string? ,begin) (list ,begin))
                            ((procedure? ,begin) (,begin))
                            (else ,begin))
@@ -76,9 +92,65 @@
                            ((procedure? ,end) (,end))
                            (else ,end))))))))
 
-(define (cnvr sxml root)
-  (let ((tag (car sxml))
-        (body sxml))
-    (tag body root)))
+(define (has-siblings? name siblings)
+  (any (lambda (e) (eq? name (sxml:name e))) siblings))
+
+(define-macro (define-simple-rules builder . tags)
+  (let R ((tags tags)
+          (rest '()))
+    (if (null? tags) `(begin ,@(reverse rest))
+        (R (cdr tags)
+           (list* `(define-tag ,(car tags)
+                     (,builder ',(car tags)))
+                  rest)))))
+
+(define-macro (define-tag-replace tagname proc-or-str)
+  `(define-tag ,tagname
+     (define-rule
+       (lambda ()
+         (if (string? ,proc-or-str) '(,proc-or-str)
+             '("")))
+       (lambda (str)
+         (if (procedure? ,proc-or-str) (,proc-or-str str)
+             str))
+       "")))
+
+(define-syntax when-lang
+  (syntax-rules (else)
+    ((_) "")
+    ((_ else b) b)
+    ((_ language builder)
+     (call/cc (lambda (k)
+       (lambda (body root)
+         (let1 attr-lang (sxml:attr-u body 'lang)
+           (if (and attr-lang (string=? attr-lang language))
+               (k builder)
+               ""))))))
+    ((_ language1 builder1 language2 builder2 ...)
+     (call/cc (lambda (k)
+       (lambda (body root)
+         (let1 attr-lang (sxml:attr-u body 'lang)
+           (if (and attr-lang (string=? attr-lang language1))
+               (k builder1)
+               (k (when-lang language2 builder2 ...))))))))))
+
+(define-syntax ifstr
+  (syntax-rules (else)
+    ((_ con proc-or-str)
+      (if (and con (string? con))
+          (if (procedure? proc-or-str)
+              (proc-or-str con)
+              proc-or-str)
+          ""))
+     ((_ con)
+      (if con con ""))
+     ((_ con else str)
+      (if con con str))
+     ((_ con proc-or-str1 else str)
+      (if (and con (string? con))
+          (if (procedure? proc-or-str1)
+              (proc-or-str1 con)
+              proc-or-str1)
+          str))))
 
 (provide "xmltex/cnvr")
