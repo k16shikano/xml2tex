@@ -49,11 +49,45 @@
                  (colspec (make-colspec trs-tds)))
             (sxml:set-attr
               (cons (sxml:name body)
-                    (append (last-td (negate-multirow ((node-closure (ntype-names?? '(tr))) body)))
+                    (append ((compose set-col-width last-td negate-multirow) (map (cut cons 'tr <>) trs-tds))
+                            (sxml:aux-as-list body)
                             (sxml:content
                               (filter (sxml:invert (ntype-names?? '(tr))) body))))
               (list 'colspec colspec))))))
 ))
+
+(define (set-col-width trstds)
+  (define (max-colwidths trstds)
+    (map max-width
+      (apply zip
+        (map (lambda (tr)
+               (map (lambda (td)
+                      (let ((colspan (x->integer (or (sxml:attr-u td 'colspan) "1")))
+                            (width (x->integer (string-filter (or (sxml:attr-u td 'width) "0") #[0-9]))))
+                        (x->string (x->integer (if colspan (ceiling (/. width colspan)) width)))))
+                    (expand ((node-closure (ntype-names?? '(td th))) tr))))
+             trstds))))
+  (define (max-width ls)
+    (apply max (map (compose string->number (cut string-filter <> #[0-9])) ls)))
+  (define (apply-width widths tr)
+    (let1 colspans (map (compose x->integer (lambda (td) (or (sxml:attr-u td 'colspan) "1")))
+                        ((node-closure (ntype-names?? '(td th))) tr))
+      (make-content
+        (sxml:name tr) (sxml:attr-as-list tr)
+          (reverse (fold
+            (lambda (c td s)
+              (let1 w (number->string (apply + (take* widths c)))
+                (set! widths (drop* widths c))
+                (cons (sxml:set-attr td (list 'width #`",|w|zw")) s)))
+            '() colspans (sxml:content tr))))))
+  (let1 colwidths (max-colwidths trstds)
+    (map (pa$ apply-width colwidths) trstds)))
+
+(define (expand tds)
+  (fold-right (lambda (head rest)
+                (append (make-list (x->integer (or (sxml:attr-u head 'colspan) "1")) head)
+                        rest))
+              '() tds))
 
 (define (negate-multirow trs-tds)
   ;; td -> #f|Int
@@ -73,7 +107,7 @@
   ;; The integer indicates a tr to which we set negative rowspan.
   (define (having-rowspan tr)
     (map (lambda (td) (cons (and (pair? td) (positive-rowspan? td)) td))
-         (expand tr)))
+         (expand ((node-closure (ntype-names?? '(td th))) tr))))
   (define (set-negative-rowcol row-tds trs-tds)
     (unzip2
       (map (lambda (tds-i)
@@ -90,24 +124,10 @@
       (sxml:name tds-i) (sxml:attr-as-list tds-i)
       (map (lambda (td-i row-td)
              (if (car row-td)
-                 (sxml:set-attr (cdr row-td)
+                 (sxml:set-attr (cdr row-td);(sxml:change-content td-i (sxml:content (cdr row-td)))
                    (list 'rowspan (x->string (- (car row-td)))))
                  td-i))
-           (padding-null-td (sxml:content tds-i) row-tds) row-tds)))
-  (define (make-content name attr cont)
-    (cons name (append attr cont)))
-  (define (padding-null-td tds row-tds)
-    (take* tds (rownum row-tds) #t '(td "")))
-  (define (rownum row-tds)
-    (if (null? row-tds) 0
-        (fold (lambda (a b) (if a (+ a b) b)) 0 (map car row-tds))))
-  ;; repeat td colspan times
-  (define (expand tr)
-    (let1 tds ((node-closure (ntype-names?? '(td th))) tr)
-      (fold-right (lambda (head rest)
-                    (append (take* (list head) (x->integer (or (sxml:attr-u head 'colspan) "1")) #t '())
-                            rest))
-                  '() tds)))
+           (sxml:content tds-i) row-tds)))
   (unfold null?
           (lambda (seed)
             (crash-positive-rowspan (car seed)))
@@ -120,6 +140,8 @@
   (map (lambda (tr)
          (append (drop-right tr 1) (list (sxml:set-attr (last tr) (list 'last "yes")))))
        trs-tds))
+(define (make-content name attr cont)
+  (cons name (append attr cont)))
 
 (define-tag tr
   (define-rule
