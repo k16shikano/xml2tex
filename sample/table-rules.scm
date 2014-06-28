@@ -120,27 +120,30 @@
   ;; The integer indicates a tr to which we set negative rowspan.
   (define (having-rowspan tr)
     (map (lambda (td) (cons (positive-rowspan? td) td))
-         (expand tr)))
+         tr))
   (define (set-negative-rowcol row-tds tdss)
     (unzip2
       (map (lambda (tds-i)
              (for-each 
 	      (lambda (row-td)
 		(if (and (car row-td) (= (car row-td) (cadr tds-i)))
-		    (set! tds-i
-			  (list (replace-positive-rowcol (car tds-i) row-tds)
-				(cadr tds-i)))
+		    (set! tds-i (list (fill-rowcol (car tds-i) row-tds) (cadr tds-i)))
 		    tds-i))
 	      row-tds)
              tds-i)
            (zip tdss (iota (length tdss) 2)))))
-  (define (replace-positive-rowcol tds-i row-tds)
-      (map (lambda (td-i row-td)
-             (if (car row-td)
-                 (sxml:set-attr (cdr row-td)
-                   (list 'rowspan (x->string (- (car row-td)))))
-                 td-i))
-           (sxml:content tds-i) row-tds))
+  (define (fill-rowcol tds-i row-tds)
+    (let R ((row-tds row-tds)
+	    (tds-i   (sxml:content tds-i)))
+      (cond ((null? row-tds) '())
+	    ((car (car row-tds))
+	     (cons (sxml:set-attr
+		    (cdr (car row-tds))
+		    (list 'rowspan (x->string (- (car (car row-tds))))))
+		   (R (cdr row-tds) tds-i)))
+	    ((null? tds-i)   (R (cdr row-tds) tds-i))
+	    (else (cons (car tds-i) (R (cdr row-tds) (cdr tds-i)))))))
+
   (unfold null?
           (lambda (seed)
             (crash-positive-rowspan (car seed)))
