@@ -23,13 +23,16 @@
 
 (define-module xmltex.latex
   (use srfi-1)
+  (use srfi-13)
+  (use util.list)
   (use sxml.tools)
   (use xmltex.cnvr)
   (export make-latex-env
           make-latex-cmd
           make-latex-cmd-without-tex-escape
           make-latex-group
-          ignore
+	  relative-width          
+	  ignore
           through
           without-white
           kick-comment
@@ -96,8 +99,9 @@
     (lambda (s) s)
     (lambda () '())))
 
-(define (has-siblings? name siblings)
-  (any (lambda (e) (eq? name (sxml:name e))) siblings))
+; String -> String
+(define (relative-width w)
+  (format #f "~a\\textwidth" (* 0.01 (string->number (string-delete w #\%)))))
 
 (define-macro (define-simple-rules builder . tags)
   (let R ((tags tags)

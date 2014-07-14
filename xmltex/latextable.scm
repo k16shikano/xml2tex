@@ -21,7 +21,7 @@
 ;; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ;; THE SOFTWARE.
 
-(define-module xmltex.latex-table
+(define-module xmltex.latextable
   (use srfi-1)
   (use util.list)
   (use srfi-13)
@@ -37,11 +37,14 @@
 	  cellcolor)
   )
 
-(select-module xmltex.latex-table)
+(select-module xmltex.latextable)
 
 ; Int -> String
+(define (recalc-relative-width w)
+  (format #f "~a\\textwidth" (* 0.01 (string->number w))))
+
 (define (latex-relative-width w)
-  (format #f "~a\\textwidth" (* 0.01 w)))
+  (format #f "~a\\textwidth" (* 0.01 (string->number (string-delete w #\%)))))
 
 ; [TR] -> [TR]
 ; seek the broadest TD in the column
@@ -97,7 +100,7 @@
 	    (lambda (c td s)
 	      (let1 w (number->string (apply + (filter values (take* widths c))))
 		    (set! widths (drop* widths c))
-		    (cons (sxml:set-attr td (list 'width (latex-relative-width #?=(string->number w)))) s)))
+		    (cons (sxml:set-attr td (list 'width (recalc-relative-width w))) s)))
 	    '() colspans (sxml:content tr)))))
   (let1 colwidths (max-colwidths trs)
 	(map (pa$ apply-width colwidths) trs)))
@@ -229,10 +232,10 @@
 	   (string-join 
 	    (make-list (x->integer colspan)
 		       #`">{,(cellcolor bgcolor)},(string-take (or align \"c\") 1)")))
-	  (width   #`">{,(cellcolor bgcolor)},(string-take (or align \"m\") 1){,(latex-relative-width (string->number (string-delete width #\\%)))}")
+	  (width   #`">{,(cellcolor bgcolor)},(string-take (or align \"m\") 1){,(relative-width width)}")
 	  (else    "c"))))
      (car thtds))
     ""
     'strict-infix))
 
-(provide "xmltex/latex-table")
+(provide "xmltex/latextable")
