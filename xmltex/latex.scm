@@ -54,7 +54,7 @@
   (let ((opt (get-keyword :opt args ""))
         (args (get-keyword :args args '())))
     (values (if (string=? opt "") '()
-                (format #f "[~a]" opt))
+		(format #f "[~a]" opt))
             (if (null? args) '()
                 (map (pa$ format #f "{~a}") args)))))
 
@@ -76,7 +76,7 @@
         (list "\\" name opt args "{"))
       (lambda (str)
         (list (without-white (kick-comment str))))
-      (lambda () (list "}")))))
+      (lambda () (list "} ")))))
 
 (define (make-latex-cmd-without-tex-escape name . args)
   (receive (opt args) (latex-opt-args args)
@@ -84,7 +84,7 @@
       (lambda ()
         (list "\\" name opt args "{"))
       (lambda (str) str)
-      (lambda () (list "}")))))
+      (lambda () (list "} ")))))
 
 (define (make-latex-group group)
   (define-rule
@@ -103,14 +103,14 @@
     (lambda () '())))
 
 (define (doc-class name . args)
-  (let1 args (if (null? args) "" #`"[,|args|]")
-	(string-join `("\\documentclass" ,args "{" ,name "}\n"
+  (let1 opts (if (null? args) "" (format #f "[~a]" (string-join args "," 'strict-infix)))
+	(string-join `("\\documentclass" ,opts "{" ,name "}\n"
 		       "\\usepackage[T1]{fontenc}" ;; must
 		       ) "")))
 
 (define (usepackage name . args)
-  (let1 args (if (null? args) "" #`"[,|args|]")
-	(string-join `("\\usepackage" ,args "{" ,name "}\n") "")))
+  (let1 opts (if (null? args) "" (format #f "[~a]" (string-join args "," 'strict-infix)))
+	(string-join `("\\usepackage" ,opts "{" ,name "}\n") "")))
 
 ; String -> String
 (define (relative-width w)

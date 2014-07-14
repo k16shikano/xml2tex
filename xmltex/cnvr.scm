@@ -23,6 +23,7 @@
 (define-module xmltex.cnvr
   (use sxml.sxpath)
   (use sxml.tools)
+  (use srfi-1)
   (export cnvr
           define-tag
           define-rule
@@ -105,12 +106,29 @@
 (define (has-siblings? name siblings)
   (any (lambda (e) (eq? name (sxml:name e))) siblings))
 
+(define accented-chars
+  (append-map (lambda (h)
+                (map (lambda (t)
+                       (cons (string->symbol (string-append h (car t)))
+                             (list 'tex (string-append "\\" (cdr t) "{" h "}"))))
+                     '(("acute" . "'")
+                       ("uml"   . "\"")
+                       ("circ"  . "^")
+                       ("caron" . "v")
+                       ("grave" . "`")
+                       ("tilde" . "~")
+                       ("ring"  . "r")
+                       ("cedil" . "c"))))
+              '("a" "e" "i" "u" "o" "n" "c" "y" "A" "E" "I" "U" "O" "N" "C" "Y")))
+
 (define xml-entities
-  (list
-   '(amp  . "&")
-   '(lt   . "<")
-   '(gt   . ">")
-   ))
+  `((amp  . "&") 
+    (lt   . "<") (gt   . ">")
+    (quot . "\"") (rsquo . "'") (lsquo . "`") (rdquo . "''") (ldquo . "``") 
+    (ndash . " -- ") (mdash . " --- ") (bull . "・") (thinsp . " ")
+    ,@accented-chars
+    ))
+
 
 (define-macro (define-simple-rules builder . tags)
   (let R ((tags tags)
