@@ -6,23 +6,13 @@
 (use sxml.sxpath)
 (use sxml.tools)
 (use xmltex.latex)
-(use xmltex.latex-table)
+(use xmltex.latextable)
 (use text.tree)
 (use srfi-13)
 (use util.list)
 
 (define-simple-rules through
   *TOP* *PI*)
-
-(define xml-entities
-  (list
-   '(amp  . "&")
-   '(quot . "'")
-   '(lt   . "<")
-   '(gt   . ">")
-   '(apos . "'")
-   '(ouml . "\\\"o")
-   ))
 
 (define-tag body
   (define-rule

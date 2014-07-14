@@ -1,0 +1,120 @@
+(use sxml.sxpath)
+(use sxml.tools)
+(use xmltex.latex)
+(use xmltex.cnvr)
+(use text.tree)
+(use srfi-13)
+
+(define-tag *TOP*
+  (define-rule 
+    (doc-class "article" "a4paper" "twocolumn")
+    values 
+    '() 
+))
+
+(define-tag head 
+  (define-rule 
+    (list
+     (usepackage "lucidabr")
+     (usepackage "xcolor" "table")
+     (usepackage "multirow")
+     (usepackage "graphicx")
+     (usepackage "calc")
+     (usepackage "alltt")
+     )
+    trim
+    ""))
+(define-tag title (make-latex-cmd 'title))
+
+(define-tag body (make-latex-env 'document))
+(define-tag p (define-rule "\n" trim "\\par\n"))
+(define-tag em (make-latex-cmd 'emph))
+
+(define-tag h1 (make-latex-cmd 'section))
+(define-tag h2 (make-latex-cmd 'subsection))
+(define-tag h3 (make-latex-cmd 'subsubsection*))
+
+(define-tag pre
+  (define-rule
+	(lambda () 
+	  (list #`"\\begin{alltt}\\footnotesize"))
+	kick-comment
+	(lambda () 
+	  (list "\\end{alltt}"))))
+(define-tag code (make-latex-cmd 'texttt))
+
+(define-tag b 
+  (define-rule 
+    "\\textbf{"
+    kick-comment
+    "}"))
+(define-tag font
+  (define-rule 
+    #`"{\\color{,($@ 'color)}"
+    kick-comment
+    "}"))
+
+(define-tag footnote (make-latex-cmd 'footnote))
+
+(define-tag ol (make-latex-env 'enumerate))
+(define-tag li (define-rule "\\item " trim "\\\\\n"))
+
+(define-tag img
+  (define-rule
+    (lambda ()
+      (receive (src width)
+          (values (format #f "{~a}" (ifstr ($@ 'src)))
+                  (format #f "[width=~a]" (ifstr ($@ 'width) relative-width else "100truemm")))
+        (list "\\begin{figure}[h]\n"
+              "\\includegraphics" width src)))
+    trim
+    "\\end{figure}"))
+
+
+
+;;; table 
+(use xmltex.latextable)
+(define-tag table
+  (define-rule
+    #`"\\begin{center}\\footnotesize\\begin{tabular}{|,($@ 'colspec)|}\n" ;; attr colspec is meant to be decided automatically though, you can put them down explicitly. 
+    trim
+    "\\end{tabular}\\end{center}\n"
+    :pre
+    (lambda (body root)
+      (let* ((trs ((node-closure (ntype-names?? '(tr))) body))
+	     (tds (map (node-closure (ntype-names?? '(td th))) trs))
+	     (tr-attrs (map sxml:attr-as-list trs))
+	     (colspec (make-colspec tds)))
+	(sxml:set-attr
+	 (cons (sxml:name body)
+	       (append 
+		(transform-trs tds tr-attrs)
+		(sxml:aux-as-list body)
+		(sxml:content
+		 (filter (sxml:invert (ntype-names?? '(tr))) body))))
+	 (list 'colspec colspec))))
+    ))
+
+(define (transform-trs trs tr-attrs)
+  (define (make-content name attr cont)
+    (cons name (append attr cont)))
+  (map 
+   (lambda (tr)
+     (cons
+      'tr 
+      (append tr-attrs tr)))
+   ((compose set-col-width tr-last-td negate-multirow) trs)))
+
+(define-tag tr
+  (define-rule
+    ""
+    trim
+    (lambda ()
+      (let ((terminator (if (null? ($child 'th)) "" "\\hline"))
+            (underline  (cline ($@ 'cline))))
+        #`"\\\\,|underline|,|terminator|\n"))))
+
+(define-tag th (make-td 'th))
+(define-tag td (make-td 'td))
+
+(define-tag caption (make-latex-cmd 'caption))
