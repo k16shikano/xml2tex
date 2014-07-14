@@ -28,6 +28,7 @@
           define-rule
           define-simple-rules
           define-tag-replace
+	  xml-entities
           ifstr
           when-lang
           has-siblings?)
@@ -46,7 +47,16 @@
        (,rule body root)))
 
 (define-method object-apply ((tag <symbol>) (body <list>) (root <list>))
-  ((global-variable-ref 'user tag) body root))
+  (guard (exc
+	  ((<error> exc)
+	   (map (lambda (b)
+		  (cond (((ntype?? '*) b) (cnvr b root))
+			(((ntype?? '@) b) '())
+			(((ntype?? '*text*) b) b)
+			(else '())))
+		(cdr body)))  ;; default is 'through'
+	  (else 'othre-error))
+	 ((global-variable-ref 'user tag) body root)))
 
 (define-macro (define-rule begin while end . options)
   (let-keywords options ((pre values) (post values))
@@ -94,6 +104,13 @@
 
 (define (has-siblings? name siblings)
   (any (lambda (e) (eq? name (sxml:name e))) siblings))
+
+(define xml-entities
+  (list
+   '(amp  . "&")
+   '(lt   . "<")
+   '(gt   . ">")
+   ))
 
 (define-macro (define-simple-rules builder . tags)
   (let R ((tags tags)

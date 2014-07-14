@@ -44,16 +44,17 @@
 
 (define (main args)
   (let-args (cdr args)
-    ((rulefile "r|rule=s" "rules.scm")
+    ((rulefile "r|rule=s" #f)
      (help     "h|help" => (cut show-help (car args)))
      . restargs)
     (if (null? restargs)
         (show-help (car args))
         (begin 
-          (load rulefile)
+	  (load "default.rules")
+          (if rulefile (load rulefile))
           (let ((sxml (to-sxml (last restargs))))
             (write-tree (cnvr sxml sxml))))))
   0)
 
 (define (show-help p)
-  (display "usage: gosh xml2tex.scm -r|rule <rules.scm> input.xml > output.tex\n"))
+  (display "usage: gosh xml2tex.scm -r|rule <default.rule> input.xml > output.tex\n"))

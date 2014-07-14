@@ -1,0 +1,10 @@
+(use xmltex.latex)
+
+(define-tag *PI* ignore)
+
+(define-tag *TOP*
+  (define-rule 
+    (doc-class "report") 
+    values 
+    '() 
+))

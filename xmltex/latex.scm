@@ -31,9 +31,12 @@
           make-latex-cmd
           make-latex-cmd-without-tex-escape
           make-latex-group
+	  define-by-tag
 	  relative-width          
 	  ignore
           through
+	  doc-class
+	  usepackage
           without-white
           kick-comment
           dis-ligature
@@ -99,6 +102,16 @@
     (lambda (s) s)
     (lambda () '())))
 
+(define (doc-class name . args)
+  (let1 args (if (null? args) "" #`"[,|args|]")
+	(string-join `("\\documentclass" ,args "{" ,name "}\n"
+		       "\\usepackage[T1]{fontenc}" ;; must
+		       ) "")))
+
+(define (usepackage name . args)
+  (let1 args (if (null? args) "" #`"[,|args|]")
+	(string-join `("\\usepackage" ,args "{" ,name "}\n") "")))
+
 ; String -> String
 (define (relative-width w)
   (format #f "~a\\textwidth" (* 0.01 (string->number (string-delete w #\%)))))
@@ -122,6 +135,14 @@
          (if (procedure? ,proc-or-str) (,proc-or-str str)
              str))
        "")))
+
+(define-macro (define-by-tag tag str . while-proc)
+  `(define-tag ,tag
+     (define-rule 
+       ,(string-append "\\" str "{")
+       ,(if (null? while-proc) trim (car while-proc))
+       "}")))
+
 
 (define-syntax ifstr
   (syntax-rules (else)
