@@ -25,6 +25,7 @@
   (use srfi-1)
   (use srfi-13)
   (use util.list)
+  (use sxml.sxpath)
   (use sxml.tools)
   (use xmltex.cnvr)
   (export make-latex-env
@@ -32,11 +33,17 @@
           make-latex-cmd-without-tex-escape
           make-latex-group
 	  define-by-tag
+          define-simple-rules
+          define-tag-replace
 	  relative-width          
 	  ignore
           through
 	  doc-class
 	  usepackage
+          ifstr
+          when-lang
+          when-head
+          has-siblings?
           without-white
           kick-comment
           dis-ligature
@@ -76,7 +83,7 @@
         (list "\\" name opt args "{"))
       (lambda (str)
         (list (without-white (kick-comment str))))
-      (lambda () (list "} ")))))
+      (lambda () (list "}")))))
 
 (define (make-latex-cmd-without-tex-escape name . args)
   (receive (opt args) (latex-opt-args args)
@@ -84,7 +91,7 @@
       (lambda ()
         (list "\\" name opt args "{"))
       (lambda (str) str)
-      (lambda () (list "} ")))))
+      (lambda () (list "}")))))
 
 (define (make-latex-group group)
   (define-rule
@@ -115,6 +122,9 @@
 ; String -> String
 (define (relative-width w)
   (format #f "~a\\textwidth" (* 0.01 (string->number (string-delete w #\%)))))
+
+(define (has-siblings? name siblings)
+  (any (lambda (e) (eq? name (sxml:name e))) siblings))
 
 (define-macro (define-simple-rules builder . tags)
   (let R ((tags tags)
@@ -163,7 +173,6 @@
               proc-or-str1)
           str))))
 
-
 (define-syntax when-lang
   (syntax-rules (else)
     ((_) "")
@@ -183,6 +192,16 @@
                (k builder1)
                (k (when-lang language2 builder2 ...))))))))))
 
+(define-syntax when-head
+  (syntax-rules ()
+    ((_) "")
+    ((_ builder1 builder2)
+     (call/cc (lambda (k)
+       (lambda (body root)
+         (if (null? (((sxml:ancestor (ntype-names?? '(head))) root) body))
+             (k builder2)
+             (k builder1))))))))
+
 ;;--------------
 ;; escapes
 
@@ -190,7 +209,6 @@
   (regexp-replace-all* str
     #/[ ]{2,}|　/     " "
     #/\n{2,}/         ""
-    #/(?:^|\n)[ \t]/  ""
     #/[ \t](?:^|\n)/  ""
     ))
 

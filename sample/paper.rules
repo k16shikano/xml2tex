@@ -15,24 +15,25 @@
 (define-tag head 
   (define-rule 
     (list
-     (usepackage "lucidabr")
+;     (usepackage "lucidabr")
      (usepackage "xcolor" "table")
      (usepackage "multirow")
      (usepackage "graphicx")
      (usepackage "calc")
      (usepackage "alltt")
+     (usepackage "url")
      )
     trim
     ""))
-(define-tag title (make-latex-cmd 'title))
+  
+(define-tag body (define-rule "\\begin{document}\\maketitle" trim "\\end{document}"))
 
-(define-tag body (make-latex-env 'document))
 (define-tag p (define-rule "\n" trim "\\par\n"))
 (define-tag em (make-latex-cmd 'emph))
 
-(define-tag h1 (make-latex-cmd 'section))
-(define-tag h2 (make-latex-cmd 'subsection))
-(define-tag h3 (make-latex-cmd 'subsubsection*))
+(define-tag h1 (ignore))
+(define-tag h2 (make-latex-cmd 'section))
+(define-tag h3 (make-latex-cmd 'subsection*))
 
 (define-tag pre
   (define-rule
@@ -71,12 +72,12 @@
     "\\end{figure}"))
 
 
-
 ;;; table 
 (use xmltex.latextable)
 (define-tag table
   (define-rule
-    #`"\\begin{center}\\footnotesize\\begin{tabular}{|,($@ 'colspec)|}\n" ;; attr colspec is meant to be decided automatically though, you can put them down explicitly. 
+    ;; attr colspec is meant to be decided automatically though, you can put them down explicitly. 
+    #`"\\begin{center}\\footnotesize\\begin{tabular}{|,($@ 'colspec)|}\n" 
     trim
     "\\end{tabular}\\end{center}\n"
     :pre
@@ -110,7 +111,7 @@
     ""
     trim
     (lambda ()
-      (let ((terminator (if (null? ($child 'th)) "" "\\hline"))
+      (let ((terminator (if (null? ($child '(th))) "" "\\hline"))
             (underline  (cline ($@ 'cline))))
         #`"\\\\,|underline|,|terminator|\n"))))
 
@@ -118,3 +119,29 @@
 (define-tag td (make-td 'td))
 
 (define-tag caption (make-latex-cmd 'caption))
+
+
+;; citation
+(define-tag dl (define-rule "\\begin{thebibliography}{0}" trim "\\end{thebibliography}"))
+(define-tag dt (define-rule "\\bibitem" trim "{--}"))
+(define-tag dd (define-rule "" trim "\n"))
+
+(define-tag title
+  (when-head
+   (define-rule "\\title{" trim "}")
+   (define-rule " ``" trim "'', ")))
+
+(define-tag note
+  (when-head 
+   (through)
+   (define-rule " (See: \\url{" trim "})")))
+
+(define-tag author
+  (when-head 
+   (make-latex-cmd 'author)
+   (define-rule " " trim ", ")))
+
+(define-tag institution
+  (when-head 
+   (through) 
+   (define-rule " " trim ", ")))

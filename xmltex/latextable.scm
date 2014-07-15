@@ -206,7 +206,7 @@
              (style (if (string=? "" width)
                         (if (eq? 'th type) "c" "l")
                         "m"))
-             (bgcolor (if (eq? 'th type) "\\columncolor{gray}" (cellcolor ($@ 'bgcolor))))
+             (bgcolor (if (eq? 'th type) "\\columncolor[rgb]{0.9,0.9,0.9}" (cellcolor ($@ 'bgcolor))))
              (last ($@ 'last)))
         (list
           (if cols #`"\\multicolumn{,|cols|}{,(ifstr ($@ 'lsep))>{,bgcolor,|align|},|style|,|width|,(ifstr ($@ 'rsep)) }{,hfil" "")
