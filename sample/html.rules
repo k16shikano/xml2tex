@@ -1,0 +1,161 @@
+;; a few rules for HTML tags
+
+(use srfi-1)
+(use sxml.sxpath)
+(use sxml.tools)
+(use text.tree)
+(use xmltex.cnvr)
+(use xmltex.latex)
+
+(define-tag *TOP*
+  (define-rule 
+    (doc-class "article" "a4paper" "twocolumn")
+    values 
+    '()))
+
+(define-tag head 
+  (define-rule 
+    (list
+;     (usepackage "lucidabr")
+     (usepackage "xcolor" "table")
+     (usepackage "multirow")
+     (usepackage "graphicx")
+     (usepackage "calc")
+     (usepackage "alltt")
+     (usepackage "url")
+     )
+    trim
+    ""))
+
+(define-tag body 
+  (define-rule "\\begin{document}\\maketitle" trim "\\end{document}"))
+
+(define-simple-rules ignore
+  meta title style)
+
+(define-by-tag b  "textbf")
+(define-by-tag em "emph")
+(define-by-tag strong "emph")
+(define-by-tag tt "texttt")
+(define-by-tag code "texttt")
+(define-by-tag var "texttt")
+(define-by-tag i "textit")
+(define-by-tag kbd "textsc")
+
+(define-by-tag h1 "chapter")
+(define-by-tag h2 "section")
+(define-by-tag h3 "subsection")
+(define-by-tag h4 "subsubsection")
+
+(define-tag p
+  (define-rule "" trim "\n\n"))
+
+(define-tag img
+  (define-rule
+    (lambda ()
+      (receive (src width)
+          (values (format #f "{~a}" (ifstr ($@ 'src)))
+                  (format #f "[width=~a]" (ifstr ($@ 'width) relative-width else "100truemm")))
+        (list "\\begin{figure}[h]\n"
+              "\\includegraphics" width src)))
+    trim
+    "\\end{figure}"))
+
+(define-tag pre
+  (define-rule
+    (lambda () 
+      (list #`"\\begin{alltt}"))
+    kick-comment
+    (lambda () 
+      (list "\\end{alltt}"))))
+
+(define-tag dl
+  (define-rule
+    (lambda ()
+      (list "\\begin{description}"))
+    trim
+    (lambda ()
+      (list "\\end{description}"))))
+
+(define-tag dt
+  (define-rule "\\item[" trim "]"))
+
+(define-tag dd
+  (define-rule "" trim "\n\n"))
+
+(define-tag ol (make-latex-env 'enumerate))
+(define-tag ul (make-latex-env 'itemize))
+
+(define-tag li (define-rule "\\item " trim "\\\\\n"))
+
+(define-tag blockquote (make-latex-env 'quote))
+(define-tag q (define-rule "``" trim "''"))
+
+(define-tag span (through))
+(define-tag div 
+  (define-rule 
+    #`"\\begin{parbox}{,(ifstr ($@ 'width) relative-width else \"\\textwidth\")}
+    trim
+    "\\end{parbox}"))
+
+(define-tag small
+  (define-rule
+    "{\\small{}"
+    values
+    "}"))
+(define-tag big
+  (define-rule
+    "{\\large{}"
+    values
+    "}"))
+
+(define-tag br (define-rule "\\vskip\\baselineskip" values ""))
+(define-tag u (make-latex-cmd 'underline))
+
+;;; table 
+(use xmltex.latextable)
+(define-tag table
+  (define-rule
+    ;; attr colspec is meant to be decided automatically though, you can put them down explicitly. 
+    #`"\\begin{center}\\footnotesize\\begin{tabular}{|,($@ 'colspec)|}\n" 
+    trim
+    "\\end{tabular}\\end{center}\n"
+    :pre
+    (lambda (body root)
+      (let* ((trs ((node-closure (ntype-names?? '(tr))) body))
+	     (tds (map (node-closure (ntype-names?? '(td th))) trs))
+	     (tr-attrs (map sxml:attr-as-list trs))
+	     (colspec (make-colspec tds)))
+	(sxml:set-attr
+	 (cons (sxml:name body)
+	       (append 
+		(transform-trs tds tr-attrs)
+		(sxml:aux-as-list body)
+		(sxml:content
+		 (filter (sxml:invert (ntype-names?? '(tr))) body))))
+	 (list 'colspec colspec))))
+    ))
+
+(define (transform-trs trs tr-attrs)
+  (define (make-content name attr cont)
+    (cons name (append attr cont)))
+  (map 
+   (lambda (tr)
+     (cons
+      'tr 
+      (append tr-attrs tr)))
+   ((compose set-col-width tr-last-td negate-multirow) trs)))
+
+(define-tag tr
+  (define-rule
+    ""
+    trim
+    (lambda ()
+      (let ((terminator (if (null? ($child '(th))) "" "\\hline"))
+            (underline  (cline ($@ 'cline))))
+        #`"\\\\,|underline|,|terminator|\n"))))
+
+(define-tag th (make-td 'th))
+(define-tag td (make-td 'td))
+
+(define-tag caption (make-latex-cmd 'caption))
