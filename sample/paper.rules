@@ -1,5 +1,6 @@
 (use sxml.sxpath)
 (use sxml.tools)
+(use sxml.serializer)
 (use xmltex.latex)
 (use xmltex.cnvr)
 (use text.tree)
@@ -9,13 +10,12 @@
   (define-rule 
     (doc-class "article" "a4paper" "twocolumn")
     values 
-    '() 
-))
+    '() ))
 
 (define-tag head 
   (define-rule 
     (list
-;     (usepackage "lucidabr")
+     (usepackage "lucidabr")
      (usepackage "xcolor" "table")
      (usepackage "multirow")
      (usepackage "graphicx")
@@ -28,7 +28,12 @@
   
 (define-tag body (define-rule "\\begin{document}\\maketitle" trim "\\end{document}"))
 
-(define-tag p (define-rule "\n" trim "\\par\n"))
+(define-tag p 
+  (define-rule 
+    (list "\n" (if (ifstr ($@ 'cont) (cut string=? "t" <>) else #f) "\\noindent " ""))
+    trim 
+    "\\par\n"))
+
 (define-tag em (make-latex-cmd 'emph))
 
 (define-tag h1 (ignore))
@@ -51,25 +56,25 @@
     "}"))
 (define-tag font
   (define-rule 
-    #`"{\\color{,($@ 'color)}"
+    #`"{\\color{,(ifstr ($@ 'color) (lambda (s) (string-append s \"!40!black\")) else \"black\")}"
     kick-comment
     "}"))
 
 (define-tag footnote (make-latex-cmd 'footnote))
 
 (define-tag ol (make-latex-env 'enumerate))
-(define-tag li (define-rule "\\item " trim "\\\\\n"))
+(define-tag li (define-rule "\\item " trim "\n"))
 
 (define-tag img
   (define-rule
     (lambda ()
       (receive (src width)
-          (values (format #f "{~a}" (ifstr ($@ 'src)))
+          (values (format #f "{~a}" (ifstr ($@ 'src) (lambda (s) #`",(string-drop-right s 3)png")))
                   (format #f "[width=~a]" (ifstr ($@ 'width) relative-width else "100truemm")))
         (list "\\begin{figure}[h]\n"
               "\\includegraphics" width src)))
     trim
-    "\\end{figure}"))
+    #`"\\caption{,(ifstr ($@ 'alt))}\\end{figure}"))
 
 
 ;;; table 
@@ -77,23 +82,31 @@
 (define-tag table
   (define-rule
     ;; attr colspec is meant to be decided automatically though, you can put them down explicitly. 
-    #`"\\begin{center}\\footnotesize\\begin{tabular}{|,($@ 'colspec)|}\n" 
+    (lambda ()
+      (list 
+        #`"\\begin{table}\\footnotesize\n"
+        #`"\\caption{,($@ 'caption)}\n"
+        #`"\\begin{tabular}{|,($@ 'colspec)|}\n" ))
     trim
-    "\\end{tabular}\\end{center}\n"
+    "\\end{tabular}\\end{table}\n"
     :pre
     (lambda (body root)
       (let* ((trs ((node-closure (ntype-names?? '(tr))) body))
 	     (tds (map (node-closure (ntype-names?? '(td th))) trs))
 	     (tr-attrs (map sxml:attr-as-list trs))
-	     (colspec (make-colspec tds)))
+	     (colspec (make-colspec tds))
+	     (captionelm ((node-closure (ntype-names?? '(caption))) body))
+	     (caption (sxml:string captionelm)))
 	(sxml:set-attr
-	 (cons (sxml:name body)
-	       (append 
-		(transform-trs tds tr-attrs)
-		(sxml:aux-as-list body)
-		(sxml:content
-		 (filter (sxml:invert (ntype-names?? '(tr))) body))))
-	 (list 'colspec colspec))))
+	 (sxml:set-attr
+	  (cons (sxml:name body)
+	        (append 
+		 (transform-trs tds tr-attrs)
+		 (sxml:aux-as-list body)
+		 (sxml:content
+		  (filter (sxml:invert (ntype-names?? '(tr caption))) body))))
+	  (list 'colspec colspec))
+	 (list 'caption caption))))
     ))
 
 (define (transform-trs trs tr-attrs)
@@ -120,9 +133,8 @@
 
 (define-tag caption (make-latex-cmd 'caption))
 
-
 ;; citation
-(define-tag dl (define-rule "\\begin{thebibliography}{0}" trim "\\end{thebibliography}"))
+(define-tag dl (define-rule "\\begin{thebibliography}{0}\\footnotesize" trim "\\end{thebibliography}"))
 (define-tag dt (define-rule "\\bibitem" trim "{--}"))
 (define-tag dd (define-rule "" trim "\n"))
 

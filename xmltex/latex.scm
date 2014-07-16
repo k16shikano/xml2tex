@@ -71,8 +71,7 @@
       (define-rule
         (lambda ()
           (list "\n\\begin" name opt args))
-        (lambda (str)
-          (without-white (kick-comment str)))
+        trim
         (lambda () 
           (list "\\end" name))))))
 
@@ -81,8 +80,7 @@
     (define-rule
       (lambda ()
         (list "\\" name opt args "{"))
-      (lambda (str)
-        (list (without-white (kick-comment str))))
+      trim
       (lambda () (list "}")))))
 
 (define (make-latex-cmd-without-tex-escape name . args)
@@ -96,8 +94,7 @@
 (define (make-latex-group group)
   (define-rule
     (lambda () (list "{"))
-    (lambda (str)
-      (without-white (kick-comment str)))
+    trim
     (lambda () (list "}\n"))))
 
 (define (ignore . name)
@@ -238,8 +235,23 @@
     #/fl/ "f{}l"
     ))
 
+(define (TeXmark string)
+  (regexp-replace-all* string
+    #/ConTeXt/ "Con\\\\TeX{}t"
+    #/TeXML/ "\\\\TeX{}ML"
+    #/([^\w])DB2LaTeX/ "\\1DB2{}LaTeX"
+    #/^LaTeX\s/ "\\\\LaTeX\\\\ "
+    #/^TeX\s/ "\\\\TeX\\\\ "
+    #/([^\w\\])LaTeX\s/ "\\1\\\\LaTeX\\\\ "
+    #/([^a\w\\])TeX\s/ "\\1\\\\TeX\\\\ "
+    #/([^\w\\])LaTeX([^\s])/ "\\1\\\\LaTeX\\2"
+    #/([^a\w\\])TeX([^\s])/ "\\1\\\\TeX\\2"
+    #/([^\w])LaTeX$/ "\\1\\\\LaTeX"
+    #/([^a\w])TeX$/ "\\1\\\\TeX"
+    ))
+
 (define trim
-  (compose without-white kick-comment))
+  (compose TeXmark without-white kick-comment))
 
 (define (index-trim str)
   (regexp-replace-all* str

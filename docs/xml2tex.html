@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>xml2tex: The easy way to define customized XML-to-LaTeX converters</title>
+    <title>xml2tex: The easy way to define XML-to-LaTeX converters</title>
     <author>Keiichiro Shikano</author>
     <link rel="stylesheet" type="text/css" href="xml2tex.css"/>
   </head>
@@ -18,23 +18,23 @@
   When it comes to bookmaking, which is our main concern, the abstraction ladder can be depicted as in Figure 1. 
   </p>
 
-  <img src="ladder.png" alt="Climbing down the abstraction ladder to Books" width="45%"/>
+  <img src="ladder.png" alt="Abstraction Ladder of Bookmaking" width="49%"/>
 
   <p>
   Arrows in Figure 1 indicate that the translation or mapping between the formats are achieved by putting some restrictions. In other words, the expressiveness of your document would be limited in accordance with the formats in higher abstraction levels. The left-down arrow from XML to LaTeX, for example, refers to a system that can transform XML files written in some given DTDs or XML Schemas, such as DB2LaTeX <a href="#db2latex2003" class="cite">[db2latex:2003]</a> (a converter from DocBook to LaTeX) or TeXML <a href="#TeXML1999" class="cite">[TeXML:1999]</a> (a feasible XML syntax for TeX). In those systems, you can hardly create a book that requires more structural elements than the specifications offer. 
-  Similarly, the easy-to-read-and-write input formats like markdowns and Wiki syntaxes narrow the expression of the documents down to their intended use. It can be quite a good for writing and editing the manuscripts, but for supporting a variety of page layouts. 
+  Similarly, the easy-to-read-and-write input formats like markdowns and Wiki syntaxes narrow a possible expression of documents down to their intended use. It can be quite a good for writing and editing the manuscripts, but for supporting a variety of page layouts. 
   </p>
   <p>
 On the other hand, the plumbing pipes connecting different formats indicate that there's practically no restriction to a downward direction. Needless to say, LaTeX is able to produce almost all the possible page designs. That becomes one of the most important reason we'd like to use LaTeX in creating books. The same is true for XSL (including XSLT and XSL-FO). It is regarded as the best path to render a variety of page layouts from a tree structure of XML. XML also has CSS as the mechanism to put an arbitrary style to the tree. 
   </p>
   <p>
-  What is missing here is the feasible mechanism for getting LaTeX from non-restricting XML. The most common approach for now is to use XSLT. However, XSLT is meant to convert XML into XML, so it has no support for writing XML-to-LaTeX converters. One of the challenges for providing a mechanism suitable for LaTeX is xmltex <a href="#xmltex2000" class="cite">[xmltex:2000]</a>; a XML parser written in TeX macro. It must be great accomplishment in terms of a TeX macro programming, but we gather it's not easy for us to write our required converter with xmltex. The more practical approach is to use ConTeXt's XML support <a href="#contextxml" class="cite">[ConTeXt:????]</a>. They support a declarative interface to select a XML element and define the corresponding ConTeXt syntax. When we will be able to use ConTeXt in typesetting Japanese books, it must be a good alternative for our approach called xml2tex, which we are going to explain in the following section. 
+  What is missing here is the feasible mechanism for getting LaTeX from non-restricting XML. The most common approach for now is to use XSLT. However, XSLT is meant to convert a XML into another XML, so it has no support for writing XML-to-LaTeX converters. One of the challenges for providing a mechanism suitable for LaTeX is xmltex <a href="#xmltex2000" class="cite">[xmltex:2000]</a>; a XML parser written in TeX macro. It must be great accomplishment in terms of a TeX macro programming, but we gather it's not easy for us to write our required converter with xmltex. The more practical approach is to use ConTeXt's XML support <a href="#contextxml" class="cite">[ConTeXt:2013]</a>. They support a declarative interface to select a XML element and define the corresponding ConTeXt syntax. When we will be able to use ConTeXt in typesetting Japanese books, it must be a good alternative for our approach called xml2tex, which we are going to explain in the following sections. 
   </p>
 
-<h2>Defining a map from XML element to LaTeX syntax, the xml2tex way</h2>
+<h2>Defining maps from XML element tags to LaTeX syntax, the xml2tex way</h2>
 
 <p>
-Let's start with a silly example. 
+Let's start with a silly HTML example. 
 </p>
 
 <pre>
@@ -44,7 +44,7 @@ Lorem % ipsum \ ... $10,000
 </pre>
 
 <p>
-Putting aside the escaping of special characters (<code>'%'</code>, <code>'\'</code> and <code>'$'</code>), we have to decide the corresponding expression of this HTML in LaTeX. One of the feasible LaTeX-representations of this HTML is to map its only element (<code>&lt;html></code>) to the <code>"\begin{document} ... \end{document}"</code>. Here is the xml2tex way to achieve this mapping. 
+Putting aside the escaping of special characters (<code>'%'</code>, <code>'\'</code> and <code>'$'</code>), we have to decide the corresponding expression of this HTML in LaTeX. One of the feasible LaTeX-representations of this HTML is achieved by mapping its only element (<code>&lt;html></code>) to the <code>"\begin{document} ... \end{document}"</code>. Here is the xml2tex way to do this. 
 </p>
 
 <pre>
@@ -52,7 +52,7 @@ Putting aside the escaping of special characters (<code>'%'</code>, <code>'\'</c
 </pre>
 
 <p>
-That's it!<footnote>A single quotation mark in <code>'document</code> is not a typo. It tells xml2tex that it's not a variable but is a specific data in itself. It's actually a symbol in Scheme programming language.</footnote> Put this line down a file and save it as <code>"silly.rule"</code>, then fire the xml2tex command like this:
+That's it!<footnote>A single quotation mark at the head of <code>'document</code> is not a typo. It tells xml2tex that it's not a variable but is a specific data in itself. It's actually a symbol in Scheme programming language.</footnote> Put this line down and save it as <code>"silly.rule"</code>, then fire xml2tex like this:
 </p>
 
 <pre>
@@ -82,7 +82,7 @@ Special characters are automatically escaped using <code>\symbol</code> command 
 </pre>
 
 <p>
-In this HTML data, the main part of the document is wrapped with <code>&lt;body></code> tag. When it comes to getting the contents to be put into the LaTeX document, it is this <code>&lt;body></code> part that we are going to address the most. That is, the <code>&lt;body></code> is the appropriate source for the LaTeX's document environment this time, instead of the <code>&lt;html></code> as in the previous example. So we change the previous rule like this:
+In this HTML data, the main part of the document is wrapped with <code>&lt;body></code> tag. That is, this time the <code>&lt;body></code> is the appropriate source for the LaTeX's <code>document</code> environment, instead of the <code>&lt;html></code> as in the previous example. So we change the previous rule like this:
 </p>
 
 <pre>
@@ -90,17 +90,17 @@ In this HTML data, the main part of the document is wrapped with <code>&lt;body>
 </pre>
 
 <p>
-We also need to handle the other tags in the <code>&lt;body>;</code> <code>&lt;p></code> and <code>&lt;em></code>. Each <code>&lt;p></code> should be a paragraph in LaTeX. On the other hand, the LaTeX counterpart of <code>&lt;em></code> is to be <code>\emph{}</code>. These two types of mappings seem to have nothing to do with each other. Nevertheless, viewed as a recursive tree conversion, both mappings, and what is more the almost all such mappings, are regarded as a common routine job. 
+We also need to handle the other tags in the <code>&lt;body>;</code> <code>&lt;p></code> and <code>&lt;em></code>. Each <code>&lt;p></code> should be a paragraph in LaTeX. On the other hand, the LaTeX counterpart of <code>&lt;em></code> is to be <code>\emph{}</code>. These two types of mappings seem to have nothing to do with each other. Nevertheless, viewed as a recursive tree conversion, both mappings, and what is more the almost all such mappings, can be regarded as a common routine job. 
 </p>
 
 <ol>
 <li>Start a LaTeX syntax with <code>"\begin{foo}"</code>, <code>"\foo{"</code>, or other strings.</li>
-<li>Recursively process the children of the node. If there remains no children except just strings, then put the strings with necessary conversions.</li>
+<li>Recursively process the children of the node. If there remains no children except just a string, then put the string with necessary conversions.</li>
 <li>End a LaTeX syntax with <code>"\end{foo}"</code>, <code>"}"</code>, or other strings.</li>
 </ol>
 
 <p>
-In fact, the second argument to <code>define-tag</code> is regarded as a rule which encodes this routine job, and <code>make-latex-env</code> is the function that yields a common rule for generating a LaTeX environment: ``Put <code>\begin{...}</code> at the head, then convert the children recursively with necessary escaping, and put <code>\end{...}</code> at the tail.'' 
+In fact, the second argument to <code>define-tag</code> is a rule which encodes this routine job, and <code>make-latex-env</code> is the function that yields a common rule for generating a LaTeX environment. The rule is: ``Put <code>\begin{...}</code> at the head, then convert the children recursively with necessary escaping, and put <code>\end{...}</code> at the tail.'' 
 </p>
 
 <p>
@@ -115,14 +115,12 @@ For example, a rule for <code>&lt;p></code> would be written like this.
 (<b>define-tag</b> <b><font color="red">p</font></b>    <font color="gray">; if the node is this name ...</font>
   (<b>define-rule</b> 
     <font color="green">"\n"</font>         <font color="gray">; put this at the beginning ...</font>
-    <b>trim</b>         <font color="gray">; and its text nodes should be ...</font> 
+    <b>trim</b>         <font color="gray">; its text nodes should be ...</font> 
     <font color="green">"\\par\n"</font>))  <font color="gray">; put this at the ending.</font>
 </pre>
 
-<p>
-where <code>trim</code> is a utility for trimming string for use in LaTeX. 
-Although we put a rule with line by line in the above example, you actually don't need to. 
-Note that words written after semicolon (<code>;</code>) are treated as mere comments. 
+<p cont="t">
+where <code>trim</code> is a utility for trimming a string for use in LaTeX. Although we put a rule line by line in the above example, you actually don't need to. Note that words written after semicolon (<code>;</code>) are treated as mere comments. 
 </p>
 
 <p>
@@ -133,7 +131,7 @@ Also a rule for <code>&lt;em></code> could be defined like
 (<b>define-tag</b> <b><font color="red">em</font></b> (<b>define-rule</b> <font color="green">"\\emph{"</font> <b>trim</b> <font color="green">"}"</font>))
 </pre>
 
-<p>
+<p cont="t">
 or
 </p>
 
@@ -141,12 +139,12 @@ or
 (<b>define-tag</b> <b><font color="red">em</font></b> (<b>make-latex-cmd</b> <font color="blue">'emph</font>))
 </pre>
 
-<p>
-where <code>make-latex-cmd</code> is, like <code>make-latex-env</code> which we already have used, a utility to define a rule for a LaTeX command using the name. 
+<p cont="t">
+where <code>make-latex-cmd</code> is an utility to define a rule for creating a LaTeX command having the specified name. 
 </p>
 
 <p>
-The last rules we have to give are for <code>&lt;head></code> and <code>&lt;title></code>. Although we could use these meta information to generate contents in LaTeX, here we are going to just ignore them. To make the converter pass through a XML element, you can use a predefined rule <code>ignore</code>.
+The last rules we have to give are for <code>&lt;head></code> and <code>&lt;title></code>. Although we could use these meta information to generate contents in LaTeX, here we are going to just ignore them. To make the converter discard a XML element, you can use a predefined rule <code>ignore</code>.
 </p>
 
 <pre>
@@ -169,8 +167,13 @@ As a result, all you need to write to get a feasible result from the above HTML 
 </pre>
 
 <p>
-You may think of these examples as mere simplistic cases, but we have already created over a dozen of books using this system. 
+If you run xml2tex with those rules, you would get a valid LaTeX source for a book, because the default <code>\documentclass</code> is <code>book</code>. It's defined in <code>default.rule</code> with the same way as the other rules, and could be overrode your own one. 
 </p>
+
+<pre>
+(define-tag *TOP*
+  (define-rule (doc-class "body") values '())
+</pre>
 
 
 <h2>Details and Tricks</h2>
@@ -187,12 +190,11 @@ To take advantages of such a profound feature of the general programming languag
 (<b>define-tag</b> <b><font color="red">title</font></b>
   (<b>define-rule</b>
     (lambda ()
-      (list
-       (cond
-         ((eq? (<b>$parent</b>) <font color="blue">'chapter</font>)  <font color="green">"\\chapter{"</font>)
-         ((eq? (<b>$parent</b>) <font color="blue">'sect1</font>)    <font color="green">"\\section{"</font>)
-         ((eq? (<b>$parent</b>) <font color="blue">'sect2</font>)    <font color="green">"\\subsection{"</font>)
-         (else (error <font color="green">"title"</font> <b>$parent</b>)))))
+     (cond
+      ((eq? (<b>$parent</b>) <font color="blue">'chapter</font>) <font color="green">"\\chapter{"</font>)
+      ((eq? (<b>$parent</b>) <font color="blue">'sect1</font>)   <font color="green">"\\section{"</font>)
+      ((eq? (<b>$parent</b>) <font color="blue">'sect2</font>)   <font color="green">"\\subsection{"</font>)
+      (else (error <font color="green">"title"</font> <b>$parent</b>)))))
     <b>trim</b>
     <font color="green">"}"</font>))
 </pre>
@@ -202,12 +204,12 @@ In this definition, the first argument to <code>define-rule</code> is a procedur
 </p>
 
 <p>
-The other trick here is the keyword <code>$parent</code>. It will be expanded to the name of the direct parent of that node. It is one of many "shortcuts" of xml2tex that can be used to retrieve the information from the XML tree. Here is the list of such convenient predefined keywords. 
+The other trick here is the keyword <code>$parent</code>. It will be expanded to the name of the direct parent of that node. It is one of many "shortcuts" of xml2tex that can be used to retrieve the information from the XML tree. Table 1 is the list of such convenient predefined keywords. 
 </p>
 
 <table width="50%">
-<!--<caption>List of keywords defined in xml2tex</caption>-->
-<tr><th width="17%">keyword</th><th width="25%">description</th></tr>
+<caption>List of keywords defined in xml2tex</caption>
+<tr><th width="20%">keyword</th><th width="20%">description</th></tr>
 <tr><td><code>$body</code></td><td>The body of the element.</td></tr>
 <tr><td><code>$root</code></td><td>The whole document tree.</td></tr>
 <tr><td><code>$parent</code></td><td>The direct parent of the element.</td></tr>
@@ -222,7 +224,7 @@ The other trick here is the keyword <code>$parent</code>. It will be expanded to
 </table>
 
 <p>
-Here is a naive example of the usage of <code>$@</code>, which works as a function to get the value of the specified attribute. Note that <code>#`"..."</code> is a syntax of Gauche for a string interpolation. In fact, <code>#`"[width=,($@ 'width)]"</code> is to be expanded like <code>[width=100mm]</code> if the <code>&lt;img></code> tag has an attribute <code>width="100mm"</code>. 
+Below is a naive example of the usage of <code>$@</code>, which works as a function to get the value of the specified attribute. Note that <code>#`"..."</code> is a syntax of Gauche for a string interpolation. In fact, <code>#`"[width=,($@ 'width)]"</code> is to be expanded like <code>[width=100mm]</code> if the <code>&lt;img></code> tag has an attribute <code>width="100mm"</code>. 
 </p> 
 
 <pre>
@@ -237,17 +239,17 @@ Here is a naive example of the usage of <code>$@</code>, which works as a functi
 </pre>
 
 <p>
-With those <code>$</code> keywords, we are able to define most rules declaratively and intuitively. From this aspect, you can think of xml2tex like DOM rather than SAX. Indeed, xml2tex parses the entire XML tree in advance. This parsed tree has a form of SXML <a href="#SXML" class="cite">[SXML:2004]</a>, a representation of the XML Infoset in the form of S-expressions. Even this bare SXML tree can be available when defining a rule. It's sometimes necessary for elements which actually require transforming the original structure to define a reasonable mapping to LaTeX syntax. Among others, tables are the most challenging one.
+With those <code>$</code> keywords, we are able to define most rules declaratively and intuitively. From this aspect, you can think of xml2tex like DOM rather than SAX. Indeed, xml2tex parses the entire XML tree in advance. This parsed tree has a form of SXML <a href="#SXML" class="cite">[SXML:2004]</a>, a representation of the XML Infoset in the form of S-expressions. Even this bare SXML tree can be available when defining a rule. It's sometimes necessary for elements which actually require transforming the original structure to define a reasonable mapping to LaTeX syntax. Among others, tables must be the most challenging one.
 </p>
 
-<h2>Table</h2>
+<h2>Tables</h2>
 
 <p>
-To convert XML's logical structure of tables into LaTeX's representations is far from a trivial problem. We think the root cause is probably the lack of a general model of tables in LaTeX<footnote>Contrarily, in ConTeXt, there is a standard model for table and it's easier to define mappings from XML's table. <a href="" class="cite">[ConTeXt:????]</a></footnote>. 
+To convert XML's logical structure of tables into LaTeX's representations is far from a trivial problem. We think the root cause is probably the lack of a general model for tables in LaTeX<footnote>Contrarily, in ConTeXt, there is a standard model for table and it's easier to define mappings from XML's table. <a href="contextway" class="cite">[ConTeXt:2010]</a></footnote>. 
 </p>
 
 <p>
-Let us see what the conversion rule for typical HTML tables would be. If you are going to use <code>tabular</code> environment as the LaTeX representation of HTML table, then the first attempt would be like this:
+Let us see what the conversion rule for typical HTML tables would be. If you are going to use <code>tabular</code> environment as the LaTeX representation of HTML tables, then the first attempt would be like this:
 </p>
 
 <pre>
@@ -267,11 +269,11 @@ Let us see what the conversion rule for typical HTML tables would be. If you are
 </pre>
 
 <p>
-Unfortunately, it doesn't work. First, <code>tabular</code> environment requires an argument by which we explicitly specify the appearances of each column. In order to get this information from the given HTML table, we have to look through all the contents of the table. Second, we don't need the following <code>'&amp;'</code> for the last cell of each line. Third, we should be able to support the width and color of each cell, as well as the spanning of columns or rows. These information could be found in the attributes of <code>&lt;td></code>. 
+Unfortunately, it doesn't work. First, <code>tabular</code> environment requires an argument by which we explicitly specify the appearances of each column. In order to get this information from the given HTML table, we have to look through all the contents of the table. Second, we don't need the following <code>'&amp;'</code> for the last cell of each line. Third, we should be able to change the width and color of each cell, as well as to span columns or rows. These information could be found in the attributes of <code>&lt;td></code>. 
 </p>
 
 <p>
-All we need is a way to transform the raw SXML tree before applying the corresponding conversion rule. It should be avoided, but if there's no way to do that, you can use <code>:pre</code> optional argument in <code>define-rule</code> to specify a transformation procedure. Below is an relatively <em>simple</em> example to decide the column spec without any additional information except the table itself. 
+All we need is a way to transform the raw SXML tree before applying the corresponding conversion rule. It should be avoided, but if there's no way to do that, you can use <code>:pre</code> optional argument in <code>define-rule</code> to specify a transformation procedure. Below is an relatively <em>simple</em> example to decide the column specs without any additional information except the table itself. 
 </p>
 
 <pre>
@@ -298,7 +300,7 @@ All we need is a way to transform the raw SXML tree before applying the correspo
 </pre>
 
 <p>
-<code>make-colspec</code> used in <code>calc-colspec</code> is a helper functions provided by <code>xmltex.latextable</code>. With these helper functions and some understandings of Scheme and SXML, we have actually defined a conversion rule for a reasonable subset of HTML tables with <code>colspan</code> and <code>rowspan</code>. You can find the sample rule in the xml2tex's github repository <a href="#xml2tex2014">[xml2tex:2014]</a>. 
+<code>make-colspec</code> used in <code>calc-colspec</code> is one of the helper functions provided through a xml2tex's package called <code>xmltex.latextable</code>. With these helper functions and some understandings of Scheme and SXML, we have actually defined a conversion rule for a reasonable subset of HTML tables with <code>colspan</code> and <code>rowspan</code>. You can find the sample rule in the xml2tex's github repository <a href="#xml2tex2014">[xml2tex:2014]</a>. 
 </p>
 
 
@@ -309,7 +311,7 @@ Like it or not, more and more documents are created and stored in XML. Books whi
 </p>
 
 <p>
-We hope that it should be then that xml2tex would help you a lot.
+We hope that it should be then that xml2tex would help you a lot. If you have a manuscript written in a kind of XML format, all you have to do is glancing through the document and giving xml2tex a set of declarative mappings from XML tags to some LaTeX style. Aided by Scheme and SXML, you can even write a converter for a fairly complex XML documents as needed. In fact, we have already created dozens of commercial books using xml2tex while maintaining the manuscripts in a variety of XML formats.
 </p>
 
 <dl>
@@ -355,11 +357,18 @@ We hope that it should be then that xml2tex would help you a lot.
   <note><a href="https://www.tug.org/TUGboat/tb21-3/tb68carl.pdf">https://www.tug.org/TUGboat/tb21-3/tb68carl.pdf</a></note>
 </dd>
 
-<dt class="article"><a name="context">[ConTeXt:????]</a></dt>
+<dt class="article"><a name="context">[ConTeXt:2013]</a></dt>
 <dd>
-  <author></author>
-  <title></title>
-  <note><a href=""></a></note>
+  <title>XML - ConTeXt wiki</title>
+  <institution>contextgarden</institution>
+  <note><a href="http://wiki.contextgarden.net/XML">http://wiki.contextgarden.net/XML</a></note>
+</dd>
+
+<dt class="article"><a name="contextway">[ConTeXt:2010]</a></dt>
+<dd>
+  <author>Thomas A. Schmitz</author>
+  <title>Getting Web Content and pdf-Output from One Source</title>
+  <note><a href="http://dl.contextgarden.net/myway/tas/xhtml.pdf">http://dl.contextgarden.net/myway/tas/xhtml.pdf</a></note>
 </dd>
 
 <dt class="article"><a name="Gauche">[Gauche:2013]</a></dt>

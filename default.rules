@@ -4,7 +4,7 @@
 
 (define-tag *TOP*
   (define-rule 
-    (doc-class "report") 
+    (doc-class "book") 
     values 
     '() 
 ))
