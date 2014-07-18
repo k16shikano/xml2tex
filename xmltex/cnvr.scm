@@ -26,8 +26,7 @@
   (use srfi-1)
   (export cnvr
           define-tag
-          define-rule
-	  xml-entities)
+          define-rule)
   )
 (select-module xmltex.cnvr)
 
@@ -43,16 +42,27 @@
        (,rule body root)))
 
 (define-method object-apply ((tag <symbol>) (body <list>) (root <list>))
-  (guard (exc
-	  ((<error> exc)
-	   (map (lambda (b)
-		  (cond (((ntype?? '*) b) (cnvr b root))
-			(((ntype?? '@) b) '())
-			(((ntype?? '*text*) b) b)
-			(else '())))
-		(cdr body)))  ;; default is 'through'
-	  (else 'othre-error))
-	 ((global-variable-ref 'user tag) body root)))
+  (cond ((global-variable-bound? 'gauche tag)
+         (error #`",(string-color 31 (symbol->string tag)) is not allowed for tag name.\n "))
+        ((global-variable-bound? 'user tag)
+         ((global-variable-ref 'user tag) body root))
+        (else
+         (let ()
+         (display #`"Not knowing tha LaTeX syntax for <,(string-color 32 (symbol->string tag))>, ... applyed (through). \n" 
+           (standard-error-port))
+         (map (lambda (b)
+                 (cond (((ntype?? '*) b) (cnvr b root))
+                       (((ntype?? '@) b) '())
+                       (((ntype?? '*text*) b) b)
+                       (else '())))
+              (cdr body))))))  ;; default is 'through'
+
+(define (string-color n str)
+  (string-append 
+    (apply string 
+      `(#\escape #\[ ,@(string->list (x->string n)) #\m))
+    str
+    (apply string `(#\escape #\[ #\0 #\m))))
 
 (define-macro (define-rule begin while end . options)
   (let-keywords options ((pre values) (post values))
@@ -97,29 +107,5 @@
                      (cond ((string? ,end) (list ,end))
                            ((procedure? ,end) (,end))
                            (else ,end))))))))
-
-(define accented-chars
-  (append-map (lambda (h)
-                (map (lambda (t)
-                       (cons (string->symbol (string-append h (car t)))
-                             (list 'tex (string-append "\\" (cdr t) "{" h "}"))))
-                     '(("acute" . "'")
-                       ("uml"   . "\"")
-                       ("circ"  . "^")
-                       ("caron" . "v")
-                       ("grave" . "`")
-                       ("tilde" . "~")
-                       ("ring"  . "r")
-                       ("cedil" . "c"))))
-              '("a" "e" "i" "u" "o" "n" "c" "y" "A" "E" "I" "U" "O" "N" "C" "Y")))
-
-(define xml-entities
-  `((amp  . "&") 
-    (lt   . "<") (gt   . ">")
-    (quot . "\"") (rsquo . "'") (lsquo . "`") (rdquo . "''") (ldquo . "``") 
-    (ndash . " -- ") (mdash . " --- ") (bull . "・") (thinsp . " ")
-    ,@accented-chars
-    ))
-
 
 (provide "xmltex/cnvr")

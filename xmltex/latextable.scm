@@ -191,7 +191,7 @@
     (lambda ()
       (let* ((rows ($@ 'rowspan))
              (cols (or ($@ 'colspan) "1"))
-             (width (if (string=? "0zw" ($@ 'width)) ""
+             (width (if (and ($@ 'width) (string=? "0pt" ($@ 'width))) ""
                         #`"{,($@ 'width)+,(calc-span cols)}"))
              (hfil (if (or (eq? 'th type) ($@ 'align)) "" ""))
              (align (cond ((and (eq? 'th type) (not (string=? "" width)))
@@ -224,7 +224,7 @@
     (map 
      (lambda (th)
        (let ((colspan (sxml:attr-u th 'colspan))
-	     (width (sxml:attr-u th 'width)) 
+	     (width (sxml:attr-u th 'width))
 	     (align (sxml:attr-u th 'align))
 	     (bgcolor (if (eq? 'th (sxml:name th)) (sxml:attr-u th 'bgcolor) #f)))
 	 (cond 
