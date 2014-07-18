@@ -11,18 +11,18 @@
 (use srfi-13)
 (use util.list)
 
-(define-simple-rules through
-  *TOP* *PI*)
-
 (define-tag body
-  (define-rule
-    '("\\documentclass{book}\n"
-      "\\usepackage[table]{xcolor}\n"
-      "\\usepackage{multirow}\n"
-      "\\usepackage{calc}\n"
-      "\\begin{document}\n"
-      )
-    list
+  (define-rule 
+    (list
+;     (usepackage "lucidabr")
+     (usepackage "xcolor" "table")
+     (usepackage "multirow")
+     (usepackage "graphicx")
+     (usepackage "calc")
+     (usepackage "alltt")
+     (usepackage "url")
+     "\\begin{document}")
+    trim
     "\\end{document}"))
 
 (define-tag table
