@@ -94,7 +94,7 @@
 (define-tag span (through))
 (define-tag div 
   (define-rule 
-    #`"\\begin{parbox}{,(ifstr ($@ 'width) relative-width else \"\\textwidth\")}
+    #`"\\begin{parbox}{,(ifstr ($@ 'width) relative-width else \"\\textwidth\")}"
     trim
     "\\end{parbox}"))
 
