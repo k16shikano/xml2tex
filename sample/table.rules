@@ -14,7 +14,7 @@
 (define-tag body
   (define-rule 
     (list
-;     (usepackage "lucidabr")
+     (usepackage "lucidabr")
      (usepackage "xcolor" "table")
      (usepackage "multirow")
      (usepackage "graphicx")

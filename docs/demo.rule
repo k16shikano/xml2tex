@@ -1,0 +1,9 @@
+(define-tag body (make-latex-env 'document))
+
+(define-tag h1   (make-latex-cmd 'chapter))
+(define-tag h2   (make-latex-cmd 'section))
+
+(define-tag p    (define-rule "\n" trim "\\par\n"))
+(define-tag pre  (make-latex-env 'alltt))
+
+(define-tag b    (make-latex-cmd 'textbf))

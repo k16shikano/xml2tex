@@ -1,3 +1,6 @@
+#!/bin/sh
+:; exec gosh -I. -- $0 "$@" 
+
 ;; xml2tex.scm -- XML to LaTeX converter
 
 ;; Copyright (c) 2011 SHIKANO keiichirou <k16.shikano@gmail.com>
