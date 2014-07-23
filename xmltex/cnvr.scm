@@ -20,12 +20,14 @@
 ;; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ;; THE SOFTWARE.
 
-;(require "r7rs")
+(require "r7rs")
 
 (define-module xmltex.cnvr
-;  (use r7rs)
-;  (import (gauche.base :except (div)))
-;  (extend)
+  ;(use r7rs)
+  (import (gauche.base :except (div quote)))
+  (extend)
+  (use scheme.base)
+  (use scheme.r5rs)
   (use sxml.sxpath)
   (use sxml.tools)
   (use srfi-1)
@@ -46,26 +48,10 @@
   `(define (,tagname body root)
        (,rule body root)))
 
-(define-method object-apply ((tag <symbol>) (body <list>) (root <list>))
-  (cond ((or (global-variable-bound? 'gauche tag)
-             (not (global-variable-bound? 'user tag)))
-         (let ()
-         (display #`"Not knowing tha LaTeX syntax for <,(string-color 32 (symbol->string tag))>, ... applyed (through). \n" 
-           (standard-error-port))
-         (map (lambda (b)
-                 (cond (((ntype?? '*) b) (cnvr b root))
-                       (((ntype?? '@) b) '())
-                       (((ntype?? '*text*) b) b)  ;; default is 'through'
-                       (else '())))
-              (cdr body))))
-        (else
-         ((global-variable-ref 'user tag) body root))))
-
-
 ;; If only I could hide some typical tag names like quote or div...
-#;(define-method object-apply ((tag <symbol>) (body <list>) (root <list>))
-  (cond ((global-variable-bound? 'gauche tag)
-         (error #`",(string-color 31 (symbol->string tag)) is not allowed for tag name.\n "))
+(define-method object-apply ((tag <symbol>) (body <list>) (root <list>))
+  (cond ;((global-variable-bound? 'gauche tag)
+        ; (error #`",(string-color 31 (symbol->string tag)) is not allowed for tag name.\n "))
         ((global-variable-bound? 'user tag)
          ((global-variable-ref 'user tag) body root))
         (else
