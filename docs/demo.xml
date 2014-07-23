@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="book.css" type="text/css" charset="UTF-8"?>
+<XML>
+<TITLE>A Great Book</TITLE>
+<Chapter-Title>Writing in Practice</Chapter-Title>
+<Body-Text-First>Before you can start writing a real book ... </Body-Text-First>
+<Body-Text>Let's get started!</Body-Text>
+
+<Heading-1>Introduction to LaTeX</Heading-1>
+<Body-Text-First>To keep on attracting your readers...</Body-Text-First>
+
+<Code-First>$ latex </Code-First>
+<Code>This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=latex)</Code>
+<Code> restricted \write18 enabled.</Code>
+<Code-Last>**</Code-Last>
+
+<Body-Text>Note that you <A href="#pgfId-1018223" CLASS="footnote">1</A>
+  can't put down % in your masterpiece ...</Body-Text>
+
+<FOOTNOTES>
+<FOOTNOTE>
+<Footnote-Text><A ID="pgfId-1018223"></A>
+Yes, it's you.
+</Footnote-Text>
+</FOOTNOTE>
+</FOOTNOTES>
+</XML>

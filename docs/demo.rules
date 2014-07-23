@@ -1,0 +1,34 @@
+(define-tag XML (make-latex-env 'document))
+
+(define-tag TITLE (make-latex-cmd 'title))
+
+(define-tag Chapter-Title  (make-latex-cmd 'chapter))
+(define-tag Heading-1      (make-latex-cmd 'section))
+
+(define-tag Body-Text-First (define-rule "\n\\noindent{}" trim "\\par\n"))
+(define-tag Body-Text       (define-rule "\n" trim "\\par\n"))
+
+(define-tag Code-First (define-rule "\\begin{alltt}" kick-comment ""))
+(define-tag Code       (define-rule "" kick-comment ""))
+(define-tag Code-Last  (define-rule "" kick-comment "\\end{alltt}"))
+
+(use sxml.tools)
+(use srfi-13)
+(define-tag A
+  (define-rule
+    ""
+    trim
+    ""
+    :pre (lambda (b r) 
+           (cons 'A 
+             (map-union
+               (lambda (e)
+                 (map-union
+                   (lambda (a) 
+                     (if (string=? (ifstr (sxml:attr-u b 'href)) #`"#,(sxml:attr-u a 'ID)") e #f))
+                   ((select-kids (ntype-names?? '(A))) e)))
+               ((node-closure (ntype-names?? '(Footnote-Text))) root))))))
+
+(define-tag Footnote-Text (make-latex-cmd 'footnote))
+(define-tag FOOTNOTES (ignore))
+

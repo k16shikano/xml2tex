@@ -29,7 +29,8 @@
 
 (define-tag *TOP*
   (define-rule 
-    (doc-class "book") 
+    (list (doc-class "book")
+          (latex-packages "alltt"))
     values 
     '() 
 ))

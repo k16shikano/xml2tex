@@ -35,11 +35,12 @@
 	  define-by-tag
           define-simple-rules
           define-tag-replace
-	  relative-width          
+	  relative-width
 	  ignore
           through
 	  doc-class
 	  usepackage
+	  latex-packages
           ifstr
           when-lang
           when-head
@@ -109,12 +110,15 @@
 (define (doc-class name . args)
   (let1 opts (if (null? args) "" (format #f "[~a]" (string-join args "," 'strict-infix)))
 	(string-join `("\\documentclass" ,opts "{" ,name "}\n"
-		       "\\usepackage[T1]{fontenc}" ;; must
+		       "\\usepackage[T1]{fontenc}\n" ;; must
 		       ) "")))
 
 (define (usepackage name . args)
   (let1 opts (if (null? args) "" (format #f "[~a]" (string-join args "," 'strict-infix)))
 	(string-join `("\\usepackage" ,opts "{" ,name "}\n") "")))
+
+(define (latex-packages . package-name)
+  (map usepackage package-name))
 
 ; String -> String
 (define (relative-width w)
@@ -149,7 +153,6 @@
        ,(string-append "\\" str "{")
        ,(if (null? while-proc) trim (car while-proc))
        "}")))
-
 
 (define-syntax ifstr
   (syntax-rules (else)
