@@ -5,7 +5,7 @@
     <link rel="stylesheet" type="text/css" href="xml2tex.css"/>
   </head>
 <body>
-  <h1>The easy way to define customized XML-to-LaTeX converters</h1>
+  <h1>xml2tex: The easy way to define customized XML-to-LaTeX converters</h1>
   
   <h2>LaTeX as a presentation for XML documents</h2>
   <p>
@@ -15,10 +15,10 @@
   Funnily enough, this separation is rather vague in LaTeX, despite the fact that LaTeX originally is the structured layer over the lower-level typesetting mechanism provided by the TeX engine. This weak separation sometime causes the ill-reusability of documents written in LaTeX. Especially, if you want to distribute the LaTeX document through the Web, chances are that it is as a rendered PDF. 
   </p>
   <p>
-  When it comes to bookmaking, which is our main concern, the abstraction ladder can be depicted as in Figure 1. 
+  When it comes to creating books, which is our main concern, the abstraction ladder can be depicted as in Figure 1. 
   </p>
 
-  <img src="ladder.png" alt="Abstraction Ladder of Bookmaking" width="49%"/>
+  <img src="ladder.png" alt="Abstraction Ladder in Creating Books" width="49%"/>
 
   <p>
   Arrows in Figure 1 indicate that the translation or mapping between the formats are achieved by putting some restrictions. In other words, the expressiveness of your document would be limited in accordance with the formats in higher abstraction levels. The left-down arrow from XML to LaTeX, for example, refers to a system that can transform XML files written in some given DTDs or XML Schemas, such as DB2LaTeX <a href="#db2latex2003" class="cite">[db2latex:2003]</a> (a converter from DocBook to LaTeX) or TeXML <a href="#TeXML1999" class="cite">[TeXML:1999]</a> (a feasible XML syntax for TeX). In those systems, you can hardly create a book that requires more structural elements than the specifications offer. 
@@ -28,7 +28,7 @@
 On the other hand, the plumbing pipes connecting different formats indicate that there's practically no restriction to a downward direction. Needless to say, LaTeX is able to produce almost all the possible page designs. That becomes one of the most important reason we'd like to use LaTeX in creating books. The same is true for XSL (including XSLT and XSL-FO). It is regarded as the best path to render a variety of page layouts from a tree structure of XML. XML also has CSS as the mechanism to put an arbitrary style to the tree. 
   </p>
   <p>
-  What is missing here is the feasible mechanism for getting LaTeX from non-restricting XML. The most common approach for now is to use XSLT. However, XSLT is meant to convert a XML into another XML, so it has no support for writing XML-to-LaTeX converters. One of the challenges for providing a mechanism suitable for LaTeX is xmltex <a href="#xmltex2000" class="cite">[xmltex:2000]</a>; a XML parser written in TeX macro. It must be great accomplishment in terms of a TeX macro programming, but we gather it's not easy for us to write our required converter with xmltex. The more practical approach is to use ConTeXt's XML support <a href="#contextxml" class="cite">[ConTeXt:2013]</a>. They support a declarative interface to select a XML element and define the corresponding ConTeXt syntax. When we will be able to use ConTeXt in typesetting Japanese books, it must be a good alternative for our approach called xml2tex, which we are going to explain in the following sections. 
+  What is missing here is the feasible mechanism for getting LaTeX from non-restricting XML. The most common approach for now is to use XSLT. However, XSLT is meant to convert a XML into another XML, so it has no support for writing XML-to-LaTeX converters. One of the challenges for providing a mechanism suitable for LaTeX is xmltex <a href="#xmltex2000" class="cite">[xmltex:2000]</a>; a XML parser written in TeX macro. It must be great accomplishment in terms of a TeX macro programming, but we gather it's not easy for us to write our required converter with xmltex. The more practical approach is to use ConTeXt's XML support <a href="#contextxml" class="cite">[ConTeXt:2013]</a>. They support a declarative interface to select a XML element and define the corresponding ConTeXt syntax. When we will be able to use ConTeXt in typesetting Japanese books, it must be a good alternative for our approach called xml2tex <a href="#xml2tex2014">[xml2tex:2014]</a>, which we are going to explain in the following sections. 
   </p>
 
 <h2>Defining maps from XML element tags to LaTeX syntax, the xml2tex way</h2>
@@ -167,7 +167,7 @@ As a result, all you need to write to get a feasible result from the above HTML 
 </pre>
 
 <p>
-If you run xml2tex with those rules, you would get a valid LaTeX source for a book, because the default <code>\documentclass</code> is <code>book</code>. It's defined in <code>default.rule</code> with the same way as the other rules, and could be overrode your own one. 
+If you run xml2tex with those rules, you would get a valid LaTeX source for a book, because the default <code>\documentclass</code> is <code>book</code>. It's defined in <code>default.rule</code> with the same way as the other rules like below, and can be overrode with your own definition. 
 </p>
 
 <pre>
@@ -179,7 +179,7 @@ If you run xml2tex with those rules, you would get a valid LaTeX source for a bo
 <h2>Details and Tricks</h2>
 
 <p>
-As you have seen through the examples, xml2tex works as a domain specific language (DSL) for defining maps between each XML tags and their corresponding LaTeX syntax. When it comes to DSL, a programming language of Lisp family would fit the most. Indeed, xml2tex is written in Gauche <a href="#Gauche" class="cite">[Gauche:2013]</a>, a dialect of Scheme programming languages. In addition to being a member of Lisp family, Gauche has a good amount of text processing features and libraries, which you can use in defining more complex conversion rules. 
+As you have seen through the examples, xml2tex works as a domain specific language (DSL) for defining maps between each XML tags and their corresponding LaTeX syntax. When it comes to DSL, a programming language of Lisp family would fit the most. Indeed, xml2tex is written in Gauche <a href="#Gauche" class="cite">[Gauche:2014]</a>, a dialect of Scheme programming languages. In addition to being a member of Lisp family, Gauche has a good amount of text processing features and libraries, which you can use in defining more complex conversion rules. 
 </p>
 
 <p>
@@ -245,7 +245,7 @@ With those <code>$</code> keywords, we are able to define most rules declarative
 <h2>Tables</h2>
 
 <p>
-To convert XML's logical structure of tables into LaTeX's representations is far from a trivial problem. We think the root cause is probably the lack of a general model for tables in LaTeX<footnote>Contrarily, in ConTeXt, there is a standard model for table and it's easier to define mappings from XML's table. <a href="contextway" class="cite">[ConTeXt:2010]</a></footnote>. 
+To convert XML's logical structure of tables into LaTeX is far from a trivial problem. We think the root cause is probably the lack of a general model for tables in LaTeX<footnote>Contrarily, in ConTeXt, there is a standard model for table and it's easier to define mappings from XML's table. <a href="contextway" class="cite">[ConTeXt:2010]</a></footnote>. 
 </p>
 
 <p>
@@ -273,7 +273,7 @@ Unfortunately, it doesn't work. First, <code>tabular</code> environment requires
 </p>
 
 <p>
-All we need is a way to transform the raw SXML tree before applying the corresponding conversion rule. It should be avoided, but if there's no way to do that, you can use <code>:pre</code> optional argument in <code>define-rule</code> to specify a transformation procedure. Below is an relatively <em>simple</em> example to decide the column specs without any additional information except the table itself. 
+All we need is a way to transform the raw SXML tree before applying the corresponding conversion rules. To do that, you can pass a procedure to <code>define-rule</code> using <code>:pre</code> keyword. Below is an relatively <em>simple</em> example to decide the column specs of tabular without any additional information except the table itself. 
 </p>
 
 <pre>
@@ -300,7 +300,7 @@ All we need is a way to transform the raw SXML tree before applying the correspo
 </pre>
 
 <p>
-<code>make-colspec</code> used in <code>calc-colspec</code> is one of the helper functions provided through a xml2tex's package called <code>xmltex.latextable</code>. With these helper functions and some understandings of Scheme and SXML, we have actually defined a conversion rule for a reasonable subset of HTML tables with <code>colspan</code> and <code>rowspan</code>. You can find the sample rule in the xml2tex's github repository <a href="#xml2tex2014">[xml2tex:2014]</a>. 
+<code>make-colspec</code> used in <code>calc-colspec</code> is one of the helper functions provided through a xml2tex's package called <code>xmltex.latextable</code>. With these helper functions and some understandings of Scheme and SXML, we have actually defined a conversion rule for a reasonable subset of HTML tables with <code>colspan</code> and <code>rowspan</code>. You can find it in the xml2tex's github repository <a href="#xml2tex2014">[xml2tex:2014]</a>. 
 </p>
 
 
@@ -311,7 +311,7 @@ Like it or not, more and more documents are created and stored in XML. Books whi
 </p>
 
 <p>
-We hope that it should be then that xml2tex would help you a lot. If you have a manuscript written in a kind of XML format, all you have to do is glancing through the document and giving xml2tex a set of declarative mappings from XML tags to some LaTeX style. Aided by Scheme and SXML, you can even write a converter for a fairly complex XML document as needed. In fact, we have already created dozens of commercial books using xml2tex while maintaining the manuscripts in a variety of XML formats.
+We hope that it should be then that xml2tex would help you a lot. If you have a manuscript written in a kind of XML-based format, all you have to do is glancing through the document and giving xml2tex a set of declarative mappings from XML tags to some LaTeX style. Aided by Scheme and SXML, you can even write a converter for a fairly complex XML document as needed. In fact, we have already created dozens of commercial books using xml2tex while maintaining the manuscripts in a variety of XML-based formats.
 </p>
 
 <dl>
@@ -371,7 +371,7 @@ We hope that it should be then that xml2tex would help you a lot. If you have a 
   <note><a href="http://dl.contextgarden.net/myway/tas/xhtml.pdf">http://dl.contextgarden.net/myway/tas/xhtml.pdf</a></note>
 </dd>
 
-<dt class="article"><a name="Gauche">[Gauche:2013]</a></dt>
+<dt class="article"><a name="Gauche">[Gauche:2014]</a></dt>
 <dd>
   <author>Shiro Kawai</author>
   <title>Gauche - A Scheme Implementation</title>

@@ -23,9 +23,9 @@
     ,@accented-chars
     ))
 
-(define-tag *PI* ignore)
+(define-tag *PI* (ignore))
 
-(define-tag tex through)
+(define-tag tex (through))
 
 (define-tag *TOP*
   (define-rule 

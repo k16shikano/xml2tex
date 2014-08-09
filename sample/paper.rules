@@ -56,7 +56,8 @@
     "}"))
 (define-tag font
   (define-rule 
-    #`"{\\color{,(ifstr ($@ 'color) (lambda (s) (string-append s \"!40!black\")) else \"black\")}"
+    ; #`"{\\color{,(ifstr ($@ 'color) (lambda (s) (string-append s \"!40!black\")) else \"black\")}"
+    "{"
     kick-comment
     "}"))
 
@@ -69,7 +70,7 @@
   (define-rule
     (lambda ()
       (receive (src width)
-          (values (format #f "{~a}" (ifstr ($@ 'src) (lambda (s) #`",(string-drop-right s 3)png")))
+          (values (format #f "{~a}" (ifstr ($@ 'src) (lambda (s) #`",(string-drop-right s 3)pdf")))
                   (format #f "[width=~a]" (ifstr ($@ 'width) relative-width else "100truemm")))
         (list "\\begin{figure}[h]\n"
               "\\includegraphics" width src)))

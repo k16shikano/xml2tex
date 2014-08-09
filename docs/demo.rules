@@ -1,3 +1,11 @@
+(define-tag *TOP*
+  (define-rule 
+    (list (doc-class "book" "a5paper")
+          (latex-packages "alltt"))
+    values 
+    '() 
+))
+
 (define-tag XML (make-latex-env 'document))
 
 (define-tag TITLE (make-latex-cmd 'title))
