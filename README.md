@@ -1,12 +1,12 @@
-簡単なルールを与えることで、野良XMLからLaTeXへのコンバーターを生成する仕掛け。
-詳しくは sample/sample.xml を参照。
+xml2tex
+-------
 
-sample/sample.xml そのものがお試しに使えます。
+xml2tex is a framework to give XML syntax a nice presentation layer using LaTeX.
+In other worrds, xml2tex is a framework for using XML syntax as a source of LaTeX.
 
-> gosh -I. xml2tex.scm -r sample/rules.scm sample/sample.xml > sample/book.tex
+![alt tag](https://github.com/k16shikano/xml2tex/blob/master/docs/framework.png)
 
-
-Copyright (c) 2011 SHIKANO keiichirou <k16.shikano@gmail.com>
+Copyright (c) 2011-2014 SHIKANO keiichirou <k16.shikano@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
