@@ -48,10 +48,13 @@
   `(define (,tagname body root)
        (,rule body root)))
 
-;; If only I could hide some typical tag names like quote or div...
 (define-method object-apply ((tag <symbol>) (body <list>) (root <list>))
-  (cond ;((global-variable-bound? 'gauche tag)
-        ; (error #`",(string-color 31 (symbol->string tag)) is not allowed for tag name.\n "))
+  (cond ((global-variable-bound? 'gauche tag)
+         (let1 stag (symbol->string tag)
+           #;(display #`",(string-color 31 stag) is not allowed for tag name. Using my:,|stag|, instead.\n"
+             (standard-error-port))
+           (let1 mytag (string->symbol (string-append "my:" stag))
+             ((global-variable-ref 'user mytag) body root))))
         ((global-variable-bound? 'user tag)
          ((global-variable-ref 'user tag) body root))
         (else
