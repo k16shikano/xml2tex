@@ -16,7 +16,7 @@
               '("a" "e" "i" "u" "o" "n" "c" "y" "A" "E" "I" "U" "O" "N" "C" "Y")))
 
 (define xml-entities
-  `((amp  . "&") 
+  `((amp  . "&") (nbsp . "\\, ")
     (lt   . "<") (gt   . ">")
     (quot . "\"") (rsquo . "'") (lsquo . "`") (rdquo . "''") (ldquo . "``") 
     (ndash . " -- ") (mdash . " --- ") (bull . "ÅE") (thinsp . " ")
