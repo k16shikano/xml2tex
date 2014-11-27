@@ -41,7 +41,8 @@
 
 ; Int -> String
 (define (recalc-relative-width w)
-  (format #f "~a\\textwidth" (* 0.01 (string->number w))))
+  (if (string=? w "0") "0"
+    (format #f "~a\\textwidth" (* 0.01 (string->number w)))))
 
 (define (latex-relative-width w)
   (format #f "~a\\textwidth" (* 0.01 (string->number (string-delete w #\%)))))
@@ -191,7 +192,7 @@
     (lambda ()
       (let* ((rows ($@ 'rowspan))
              (cols (or ($@ 'colspan) "1"))
-             (width (if (and ($@ 'width) (string=? "0pt" ($@ 'width))) ""
+             (width (if (and ($@ 'width) (string=? "0" ($@ 'width))) ""
                         #`"{,($@ 'width)+,(calc-span cols)}"))
              (hfil (if (or (eq? 'th type) ($@ 'align)) "" ""))
              (align (cond ((and (eq? 'th type) (not (string=? "" width)))
