@@ -49,7 +49,8 @@
           kick-comment
           dis-ligature
           trim
-          index-trim)
+          index-trim
+          verb-trim)
   )
 
 (select-module xmltex.latex)
@@ -260,5 +261,9 @@
 (define (index-trim str)
   (regexp-replace-all* str
       #/[\"!@|]/ "\"\\0"))
+
+(define (verb-trim str)
+  (regexp-replace-all* ((compose dis-ligature kick-comment) str)
+      #/[\s]/ "~"))
 
 (provide "xmltex/latex")
