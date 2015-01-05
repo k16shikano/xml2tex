@@ -241,7 +241,6 @@
 	   (string-join 
 	    (make-list (x->integer colspan)
 		       #`">{,(cellcolor bgcolor)},(string-take (or align \"c\") 1)")))
-	  (width   #`">{,(cellcolor bgcolor)},(string-take (or align \"m\") 1){,(relative-width width)}")
 	  (else    "c"))))
      (car thtds))
     ""
