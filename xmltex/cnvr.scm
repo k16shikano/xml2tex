@@ -95,6 +95,8 @@
                                     ($childs))))
                   ($following-siblings (lambda ()
                                (((sxml:following-sibling (ntype?? '*any*)) root) body)))
+                  ($preceding-siblings (lambda ()
+                               (((sxml:preceding-sibling (ntype?? '*any*)) root) body)))
                   ($siblings (lambda ()
                                ((node-or ((sxml:following-sibling (ntype?? '*any*)) root)
                                          ((sxml:preceding-sibling (ntype?? '*any*)) root)) body)))
