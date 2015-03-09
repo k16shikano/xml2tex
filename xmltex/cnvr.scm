@@ -23,11 +23,11 @@
 (require "r7rs")
 
 (define-module xmltex.cnvr
-  ;(use r7rs)
-  (import (gauche.base :except (div quote)))
-  (extend)
-  (use scheme.base)
-  (use scheme.r5rs)
+;  (use r7rs)
+;  (import (gauche.base :except (div quote)))
+;  (extend)
+;  (use scheme.base)
+;  (use scheme.r5rs)
   (use sxml.sxpath)
   (use sxml.tools)
   (use srfi-1)

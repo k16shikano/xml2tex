@@ -29,25 +29,28 @@
 (use text.tree)
 (use gauche.parseopt)
 (use xmltex.cnvr)
+(use xmltex.sxml)
 
 (require "r7rs")
-(import scheme.base scheme.r5rs (gauche.base :except (div)))
-(extend)
+;(import scheme.base scheme.r5rs (gauche.base :except (div)))
+;(extend)
 
 (define (to-sxml filename)
   (call-with-input-file filename
     (lambda (port)
       (let ((local-xml (port->string port))
-            (xml-entities xml-entities))
+            (xml-entities xml-entities)
+            (my-parser-error my-parser-error))
         (if (equal? "" local-xml)
             '()
             (call-with-input-string local-xml
               (lambda (port)
-                (with-module sxml.ssax
-                  (fluid-let ((ssax:predefined-parsed-entities
-                               xml-entities)
-                              (ssax:reverse-collect-str-drop-ws ssax:reverse-collect-str))
-                    (ssax:xml->sxml port '()))))))))))
+                (with-module
+                      xmltex.sxml
+                      (fluid-let ((ssax:predefined-parsed-entities xml-entities)
+                                  (parser-error my-parser-error)
+                                  (ssax:reverse-collect-str-drop-ws ssax:reverse-collect-str))
+                        (my-ssax:xml->sxml port '()))))))))))
 
 (define (main args)
   (let-args (cdr args)
@@ -59,8 +62,8 @@
         (begin 
 	  (load "default.rules")
           (if rulefile (load rulefile))
-          (let ((sxml (to-sxml (last restargs))))
-            (write-tree (cnvr sxml sxml))))))
+            (let ((sxml (to-sxml (last restargs))))
+              (write-tree (cnvr sxml sxml))))))
   0)
 
 (define (show-help p)
