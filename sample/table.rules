@@ -40,22 +40,24 @@
 	(sxml:set-attr
 	 (cons (sxml:name body)
 	       (append 
-		(transform-trs tds tr-attrs)
+		(sxml:attr-as-list body)
 		(sxml:aux-as-list body)
+		(transform-trs tds tr-attrs)
 		(sxml:content
 		 (filter (sxml:invert (ntype-names?? '(tr))) body))))
 	 (list 'colspec colspec))))
     ))
 
-(define (transform-trs trs tr-attrs)
+(define (transform-trs tds tr-attrs)
   (define (make-content name attr cont)
     (cons name (append attr cont)))
   (map 
-   (lambda (tr)
+   (lambda (tr-attr tr)
      (cons
       'tr 
-      (append tr-attrs tr)))
-   ((compose set-col-width tr-last-td negate-multirow) trs)))
+      (append tr-attr tr)))
+   tr-attrs
+   ((compose set-col-width tr-last-td negate-multirow) tds)))
 
 (define-tag tr
   (define-rule
@@ -64,7 +66,19 @@
     (lambda ()
       (let ((terminator (if (null? ($child 'th)) "" "\\hline"))
             (underline  (cline ($@ 'cline))))
-        #`"\\\\,|underline|,|terminator|\n"))))
+        #`"\\\\,|underline|,|terminator|\n"))
+    :pre
+      (lambda (body root)
+        (cons (sxml:name body)
+              (append (sxml:attr-as-list body)
+                      (sxml:aux-as-list body)
+                      (map (cut set-row-align-to-col body <>) ((node-closure (ntype-names?? '(td th))) body))
+                      (sxml:content
+                        (filter (sxml:invert (ntype-names?? '(td th tr))) body)))))))
+
+(define (set-row-align-to-col row col)
+  (let1 rowalign (sxml:attr-u row 'align)
+    (if rowalign (sxml:add-attr col `(align ,rowalign)) col)))
 
 (define-tag th (make-td 'th))
 (define-tag td (make-td 'td))
