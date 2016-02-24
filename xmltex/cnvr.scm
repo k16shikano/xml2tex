@@ -106,6 +106,8 @@
                                 (else #f))))
                   ($under? (lambda (list)
                              (not (null? (((sxml:ancestor (ntype-names?? list)) root) body)))))
+                  ($ancestors (lambda (list)
+                                (((sxml:ancestor (ntype-names?? list)) root) body)))
                   ($ancestor-of? (lambda (list)
                              (not (null? ((node-closure (ntype-names?? list)) body))))))
              (append (cond ((string? ,begin) (list ,begin))

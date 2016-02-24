@@ -69,6 +69,13 @@
 	     ((eq? ($parent) 'sect1)    "\\section{")
 	     ((eq? ($parent) 'sect2)    "\\subsection{")
 	     ((eq? ($parent) 'sect3)    "\\subsubsection*{")
+             ((eq? ($parent) 'section)
+              (let1 depth ($ancestors '(section))
+                (cond ((null? depth) (display "Floating Section\n" (standard-error-port)))
+                      ((= (length depth) 1) "\\section{")
+                      ((= (length depth) 2) "\\subsection{")
+                      ((= (length depth) 3) "\\subsubsection{")
+                      (else "{"))))
 	     (else (error "title" $parent)))))
     trim
     "}"))
