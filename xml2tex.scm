@@ -55,6 +55,7 @@
 (define (main args)
   (let-args (cdr args)
     ((rulefile "r|rule=s" #f)
+     (namespace "n|namespace=s" "")
      (help     "h|help" => (cut show-help (car args)))
      . restargs)
     (if (null? restargs)
@@ -63,7 +64,7 @@
 	  (load "default.rules")
           (if rulefile (load rulefile))
             (let ((sxml (to-sxml (last restargs))))
-              (write-tree (cnvr sxml sxml))))))
+              (write-tree (cnvr sxml sxml namespace))))))
   0)
 
 (define (show-help p)

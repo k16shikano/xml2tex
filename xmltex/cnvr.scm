@@ -37,36 +37,37 @@
   )
 (select-module xmltex.cnvr)
 
-(define (cnvr sxml root)
+(define (cnvr sxml root :optional (ns ""))
   (let ((tag (car sxml))
         (body sxml))
-    (tag body root)))
+    (tag body root ns)))
 
 (define-macro (define-tag tagname rule)
   ;; tagname: symbol
   ;; rule: define-rule
-  `(define (,tagname body root)
-       (,rule body root)))
+  `(define (,tagname body root ns)
+       (,rule body root ns)))
 
-(define-method object-apply ((tag <symbol>) (body <list>) (root <list>))
+(define-method object-apply ((tag <symbol>) (body <list>) (root <list>) (namespace <string>))
+  (let1 tag (string->symbol (regexp-replace (string->regexp namespace) (symbol->string tag) ""))
   (cond ((global-variable-bound? 'gauche tag)
          (let1 stag (symbol->string tag)
            #;(display #`",(string-color 31 stag) is not allowed for tag name. Using my:,|stag|, instead.\n"
              (standard-error-port))
            (let1 mytag (string->symbol (string-append "my:" stag))
-             ((global-variable-ref 'user mytag) body root))))
+             ((global-variable-ref 'user mytag) body root namespace))))
         ((global-variable-bound? 'user tag)
-         ((global-variable-ref 'user tag) body root))
+         ((global-variable-ref 'user tag) body root namespace))
         (else
          (let ()
          (display #`"Not knowing tha LaTeX syntax for <,(string-color 32 (symbol->string tag))>, ... applyed (through). \n" 
            (standard-error-port))
          (map (lambda (b)
-                 (cond (((ntype?? '*) b) (cnvr b root))
+                 (cond (((ntype?? '*) b) (cnvr b root namespace))
                        (((ntype?? '@) b) '())
                        (((ntype?? '*text*) b) b)
                        (else '())))
-              (cdr body))))))  ;; default is 'through'
+              (cdr body)))))))  ;; default is 'through'
 
 (define (string-color n str)
   (string-append 
@@ -77,7 +78,7 @@
 
 (define-macro (define-rule begin while end . options)
   (let-keywords options ((pre values) (post values))
-    `(lambda (body root)
+    `(lambda (body root :optional (ns ""))
        (let1 body (,pre body root)
            (let* (($body body)
                   ($root root)
@@ -114,7 +115,7 @@
                            ((procedure? ,begin) (,begin))
                            (else ,begin))
                      (map (lambda (b)
-                            (cond ((,(ntype?? '*) b) (cnvr b root))
+                            (cond ((,(ntype?? '*) b) (cnvr b root ns))
                                   ((,(ntype?? '@) b) '())
                                   ((,(ntype?? '*text*) b) (,while b))
                                   (else '())))
