@@ -186,11 +186,12 @@
     (string-join rgb "," 'strict-infix))
   (if bgcolor #`"\\columncolor[rgb]{,(rgb-str (parce bgcolor))}" ""))
 
-(define (make-td type)
+(define (make-td type . options)
   (define (calc-span cols)
     (let1 cols (x->number cols)
       (if (> cols 1) (format "~a\\tabcolsep+~apt" (* 2 (- cols 1)) (* 0.4 (- cols 1))) "0pt")))
-  (define-rule 
+  (let-keywords options ((trimer trim))
+   (define-rule 
     (lambda ()
       (let* ((rows ($@ 'rowspan))
              (cols (or ($@ 'colspan) "1"))
@@ -222,12 +223,12 @@
         (list
           (if cols #`"\\multicolumn{,|cols|}{,(ifstr ($@ 'lsep))>{,bgcolor,|align|},|style|,|width|,(ifstr ($@ 'rsep)) }{,hfil" "")
           (if rows #`"\\multirow{,|rows|}{,(or ($@ 'width) \"*\")}{" ""))))
-    trim
+    trimer
     (lambda ()
       (let ((hfil (if (or (eq? 'th type) (and ($@ 'align) (string=? "c" ($@ 'align)))) "" "")))
         (list
           (if ($@ 'rowspan) "}" "")
-          (if ($@ 'last) #`",hfil}" "}& "))))))
+          (if ($@ 'last) #`",hfil}" "}& ")))))))
 
 ;; [th]:[[td]] -> String
 (define (make-colspec thtds)
