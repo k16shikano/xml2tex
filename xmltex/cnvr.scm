@@ -115,7 +115,7 @@
                            ((procedure? ,begin) (,begin))
                            (else ,begin))
                      (map (lambda (b)
-                            (cond ((,(ntype?? '*) b) (cnvr b root ns))
+                            (cond ((,(ntype?? '*) b) (,list (,while "") (cnvr b root ns)))
                                   ((,(ntype?? '@) b) '())
                                   ((,(ntype?? '*text*) b) (,while b))
                                   (else '())))
