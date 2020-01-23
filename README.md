@@ -2,7 +2,7 @@ xml2tex
 -------
 
 xml2tex is a framework to give XML syntax a nice presentation layer using LaTeX.
-In other worrds, xml2tex is a framework for using XML syntax as a source of LaTeX.
+In other words, xml2tex is a framework for using XML syntax as a source of LaTeX.
 
 ![alt tag](https://github.com/k16shikano/xml2tex/blob/master/docs/framework.png)
 
