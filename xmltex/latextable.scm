@@ -221,7 +221,7 @@
              (bgcolor (if (eq? 'th type) "\\columncolor[rgb]{0.9,0.9,0.9}" (cellcolor ($@ 'bgcolor))))
              (last ($@ 'last)))
         (list
-          (if cols #`"\\multicolumn{,|cols|}{,(ifstr ($@ 'lsep))>{,bgcolor,|align|},|style|,|width|,(ifstr ($@ 'rsep)) }{,hfil" "")
+          (if cols #`"\\multicolumn{,|cols|}{,(ifstr ($@ 'lsep))>{,bgcolor,|align|},|style|,|width|,(ifstr ($@ 'rsep))}{,hfil" "")
           (if rows #`"\\multirow{,|rows|}{,(or ($@ 'width) \"*\")}{" ""))))
     trimer
     (lambda ()
