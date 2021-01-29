@@ -201,7 +201,9 @@
              (align (cond ((and (eq? 'th type) (not (string=? "" width)))
                            "\\centering\\arraybackslash\\hspace{0pt}")
                           ((or (not ($@ 'align)) (string=? "left" ($@ 'align)))
-                           "\\raggedright\\arraybackslash\\hspace{0pt}")
+                           "\\raggedright\\arraybackslash")
+                          ((or (not ($@ 'align)) (string=? "justify" ($@ 'align)))
+                           "\\raggedright\\arraybackslash\\rightskip0pt")
                           ((string=? "center" ($@ 'align))
                            "\\centering\\arraybackslash\\hspace{0pt}")
                           ((string=? "right" ($@ 'align))
@@ -221,7 +223,7 @@
              (bgcolor (if (eq? 'th type) "\\columncolor[rgb]{0.9,0.9,0.9}" (cellcolor ($@ 'bgcolor))))
              (last ($@ 'last)))
         (list
-          (if cols #`"\\multicolumn{,|cols|}{,(ifstr ($@ 'lsep))>{,bgcolor,|align|},|style|,|width|,(ifstr ($@ 'rsep)) }{,hfil" "")
+          (if cols #`"\\multicolumn{,|cols|}{,(ifstr ($@ 'lsep))>{,bgcolor,|align|},|style|,|width|,(ifstr ($@ 'rsep))}{,hfil" "")
           (if rows #`"\\multirow{,|rows|}{,(or ($@ 'width) \"*\")}{" ""))))
     trimer
     (lambda ()
