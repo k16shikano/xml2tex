@@ -31,10 +31,6 @@
 (use xmltex.cnvr)
 (use xmltex.sxml)
 
-(require "r7rs")
-;(import scheme.base scheme.r5rs (gauche.base :except (div)))
-;(extend)
-
 (define (to-sxml filename)
   (call-with-input-file filename
     (lambda (port)

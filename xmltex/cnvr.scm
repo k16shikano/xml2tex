@@ -20,8 +20,6 @@
 ;; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ;; THE SOFTWARE.
 
-(require "r7rs")
-
 (define-module xmltex.cnvr
 ;  (use r7rs)
 ;  (import (gauche.base :except (div quote)))
