@@ -16,10 +16,11 @@
               '("a" "e" "i" "u" "o" "n" "c" "y" "A" "E" "I" "U" "O" "N" "C" "Y")))
 
 (define xml-entities
-  `((amp  . "&") (nbsp . "\\hbox to1em{\\rule{0pt}{1ex}}")
+  `((amp  . "&") (nbsp . ,(list 'tex "\\hbox to1em{\\rule{0pt}{0.5ex}}"))
     (lt   . "<") (gt   . ">")
+    (plusmn . "±")
     (quot . "\"") (rsquo . "'") (lsquo . "`") (rdquo . "''") (ldquo . "``") 
-    (ndash . " -- ") (mdash . " --- ") (bull . "�E") (thinsp . " ")
+    (ndash . " -- ") (mdash . " --- ") (bull . "・") (thinsp . " ")
     ,@accented-chars
     ))
 
