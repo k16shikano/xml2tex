@@ -45,7 +45,16 @@
     (format #f "~a\\textwidth" (* 0.01 (string->number w)))))
 
 (define (latex-relative-width w)
-  (format #f "~a\\textwidth" (* 0.01 (string->number (string-delete w #\%)))))
+  (format #f "~a\\textwidth" (* 0.01 (string->number (string-delete #[\%\s] w)))))
+
+(define (get-width td)
+  (let* ((style (sxml:attr-u td 'style))
+         (width (if style (assoc "width" 
+                            (map (^t (string-split t ":"))
+                                 (string-split style ";")))
+                    #f)))
+    (or (sxml:attr-u td 'width)
+        (if width (cadr width) #f))))
 
 ; [TR] -> [TR]
 ; seek the broadest TD in the column
@@ -56,8 +65,8 @@
         (map (lambda (tr)
 	       (map 
 		(lambda (td) (let* ((colspan (x->integer (or (sxml:attr-u td 'colspan) "1")))
-				    (width   (sxml:attr-u td 'width))
-				    (wvalue  (if width (string->number (string-delete width #\%)) #f))) ; width must be a relative value ended with "%"
+				    (width   (get-width td))
+				    (wvalue  (if width (string->number (string-delete #[\%\s] width)) #f))) ; width must be a relative value ended with "%"
 			       (cons wvalue colspan))) ; (Int/#f . Int)
 		(expand tr)))
 	     trs))))
